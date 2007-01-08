@@ -16,7 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-#include <Judy.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,14 +42,6 @@
 #define J1P_GET( PJ1Array )  ( (Pvoid_t) ( (Word_t)(PJ1Array) & ~JLAP_INVALID) )
 #define IS_J1P(  PJ1Array )  ( (Word_t)(PJ1Array) & JLAP_INVALID )
 
-struct lz_buffer {
-	unsigned char*   buffer;
-	size_t  buffer_len;
-	size_t  buffer_len_mask; 
-	size_t  buffer_len_power;/* buffer_len = 2^buffer_len_base2 */
-	ssize_t  offset;
-	Pvoid_t jarray;
-};
 
 /* offset -> WRAP(offset+buffer_len_half) : new buffer
  * WRAP(offset+buffer_len/2-1) -> offset-1: old buffer (search buffer)
@@ -236,7 +227,7 @@ static int judy_insert_bytearray(const unsigned char* data, const size_t length,
 	return 0;
 }
 
-static int lzbuff_insert(struct lz_buffer* lz_buff, const char c)
+int lzbuff_insert(struct lz_buffer* lz_buff, const char c)
 {
 	const int rc = judy_insert_bytearray(lz_buff->buffer + lz_buff->offset, lz_buff->buffer_len/2, &lz_buff->jarray, lz_buff->offset);
 	/* TODO: also remove old entries */
@@ -392,7 +383,7 @@ static int get_closest(const struct lz_buffer* lz_buff,const Pvoid_t* node,ssize
 }
 
 
-static int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const unsigned char* data,const size_t data_len, ssize_t* distance, ssize_t* length)
+int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const unsigned char* data,const size_t data_len, ssize_t* distance, ssize_t* length)
 {
 	size_t i;
 	/* start searching from root array */
@@ -513,7 +504,7 @@ static void judy_show_tree(Pvoid_t jarray,int level)
 	free(spaces);
 }
 
-static void show_lz_buff(const struct lz_buffer* lz_buff)
+void show_lz_buff(const struct lz_buffer* lz_buff)
 {
 	size_t i;
 	for(i=0;i < lz_buff->buffer_len;i++) {
@@ -524,7 +515,7 @@ static void show_lz_buff(const struct lz_buffer* lz_buff)
 	printf("\n");
 }
 
-static void show_match(const struct lz_buffer* lz_buff,ssize_t distance,ssize_t length)
+void show_match(const struct lz_buffer* lz_buff,ssize_t distance,ssize_t length)
 {
 	size_t start = WRAP_BUFFER_INDEX(lz_buff,   lz_buff->offset - distance);
 	
@@ -545,7 +536,7 @@ static void show_match(const struct lz_buffer* lz_buff,ssize_t distance,ssize_t 
 	printf("\n");
 }
 
-
+/*
 int main(int argc,char* argv[])
 {
 	const unsigned char test[] = "0123456789012345";
@@ -558,7 +549,7 @@ int main(int argc,char* argv[])
 	setup_lz_buffer(&lz_buff,5);
 
 
-	/* this will be replaced by a read() */
+	 this will be replaced by a read() 
 	for(i=0;i < len;i++) {
 		lz_buff.buffer[lz_buff.offset + i] = test[i];
 	}
@@ -577,7 +568,7 @@ int main(int argc,char* argv[])
 		lzbuff_insert(&lz_buff, lz_buff.buffer[lz_buff.offset + i]);
 
 		show_lz_buff(&lz_buff);
-/*		judy_show_tree(lz_buff.jarray,0);*/
+		judy_show_tree(lz_buff.jarray,0);
 		printf("match:%ld,%ld\n",distance,length);
 		if(length < 3) {
 			length = 1;
@@ -590,7 +581,7 @@ int main(int argc,char* argv[])
 
 	return 0;
 }
-
+*/
 /*
 int main(int argc,char* argv[])
 {

@@ -16,8 +16,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+#ifndef _LZ_CODER_H
+#define _LZ_CODER_H
 
-struct lz_buffer;
+#include <Judy.h>
 
+struct lz_buffer {
+	unsigned char*   buffer;
+	size_t  buffer_len;
+	size_t  buffer_len_mask; 
+	size_t  buffer_len_power;/* buffer_len = 2^buffer_len_base2 */
+	ssize_t  offset;
+	Pvoid_t jarray;
+};
 int setup_lz_buffer(struct lz_buffer* lz_buffer,const size_t buffer_len_power);
 void cleanup_lz_buffer(struct lz_buffer* lz_buffer);
+
+int lzbuff_insert(struct lz_buffer* lz_buff, const char c);
+int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const unsigned char* data,const size_t data_len, ssize_t* distance, ssize_t* length);
+
+/* debugging functions - to be removed in a release */
+void show_lz_buff(const struct lz_buffer* lz_buff);
+void show_match(const struct lz_buffer* lz_buff,ssize_t distance,ssize_t length);
+#endif

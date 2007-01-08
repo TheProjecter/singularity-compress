@@ -4,7 +4,7 @@
 #include "stdlib.h"
 
 static const struct {
-	size_t start;
+	ssize_t start;
 	uint8_t  extra_bits;
 } code_to_length[] = {
 	{3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, 

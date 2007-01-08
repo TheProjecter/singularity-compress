@@ -20,16 +20,16 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-static void make_length_code_tables(uint8_t extra_symbols,const size_t start)
+static void make_length_code_tables(uint8_t extra_symbols,const ssize_t start)
 {
-	size_t code;
+	ssize_t code;
 	unsigned short extra_bits = 0;
 	unsigned short extra_bits_count = 0;
-	size_t   i;
+	ssize_t   i;
 
 	printf("#include \"stdlib.h\"\n\n");
 	printf("static const struct {\n");
-	printf("\tsize_t start;\n");
+	printf("\tssize_t start;\n");
 	printf("\tuint8_t  extra_bits;\n");
 	printf("} code_to_length[] = {\n");
 

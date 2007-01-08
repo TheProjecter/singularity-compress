@@ -21,7 +21,7 @@
 
 #include "stdlib.h"
 
-static inline uint16_t length_to_code(size_t length,uint8_t* extra_bits,size_t* extra_data)
+static inline uint16_t length_to_code(ssize_t length,uint8_t* extra_bits,size_t* extra_data)
 {
 	size_t low = 0;
 	size_t hi  = code_to_length_size-1;
