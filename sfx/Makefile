@@ -15,7 +15,7 @@ LDFLAGS =
 STRIP_FLAGS= -S
 STRIP_FLAGS2 = --remove-section=.comment
 LIB= libunpack.a
-UPXFLAGS=--brute  --lzma
+UPXFLAGS=--brute
 
 all: sfx-stub
 
