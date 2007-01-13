@@ -496,7 +496,7 @@ static void judy_show_tree(Pvoid_t jarray,int level)
 		Pvoid_t judy1_node = J1P_GET(jarray);
 		J1F(rc,judy1_node,Index);
 		while(rc) {
-			printf(":%s%lx\n",spaces,Index);
+			fprintf(stderr,":%s%lx\n",spaces,Index);
 			J1N(rc,judy1_node,Index);
 		}
 	}
@@ -505,7 +505,7 @@ static void judy_show_tree(Pvoid_t jarray,int level)
 		log_debug(__LINE__,"querying first:%p\n",jarray);
 		JLF(PValue, jarray, Index);
 		while(PValue != NULL) {		
-			printf("%s%lx\n",spaces,Index);
+			fprintf(stderr,"%s%lx\n",spaces,Index);
 			judy_show_tree((Pvoid_t)*PValue, level+1);
 			JLN(PValue, jarray, Index);
 		}
@@ -518,10 +518,10 @@ void show_lz_buff(const struct lz_buffer* lz_buff)
 	size_t i;
 	for(i=0;i < lz_buff->buffer_len;i++) {
 		if(i == lz_buff->offset)
-			printf("|");
-		printf("%02x ",lz_buff->buffer[i]);
+			fprintf(stderr,"|");
+		fprintf(stderr,"%02x ",lz_buff->buffer[i]);
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 }
 
 void show_match(const struct lz_buffer* lz_buff,ssize_t distance,ssize_t length)
@@ -533,16 +533,16 @@ void show_match(const struct lz_buffer* lz_buff,ssize_t distance,ssize_t length)
 
 	for(i=0;i < lz_buff->buffer_len;i++) {
 		if(i == start) {
-			printf("<");
+			fprintf(stderr,"<");
 			match = 0;
 		}
 		if(match >= 0)
 			match++;
-		printf("%02x ",lz_buff->buffer[i]);
+		fprintf(stderr,"%02x ",lz_buff->buffer[i]);
 		if(match == length)
 			printf(">");
 	}
-	printf("\n");
+	fprintf(stderr,"\n");
 }
 
 /*
