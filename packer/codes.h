@@ -32,7 +32,7 @@ static inline uint16_t length_to_code(ssize_t length,uint8_t* extra_bits,size_t*
 			hi = middle-1;
 		}
 		else if(code_to_length[middle].start < length) {
-			low = middle;
+			low = middle+1;
 		}
 		else {
 			*extra_data = length - code_to_length[middle].start;
@@ -41,6 +41,9 @@ static inline uint16_t length_to_code(ssize_t length,uint8_t* extra_bits,size_t*
 			return middle; 
 		}
 	}
+
+	if(code_to_length[low].start > length)
+		low--;
 
 	*extra_data = length - code_to_length[low].start;
 	*extra_bits = code_to_length[low].start;
