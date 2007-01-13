@@ -33,7 +33,12 @@ int setup_lz_buffer(struct lz_buffer* lz_buffer,const size_t buffer_len_power);
 void cleanup_lz_buffer(struct lz_buffer* lz_buffer);
 
 int lzbuff_insert(struct lz_buffer* lz_buff, const char c);
-int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const unsigned char* data,const size_t data_len, ssize_t* distance, ssize_t* length);
+int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const size_t offset,const size_t data_len, ssize_t* distance, ssize_t* length);
+
+/* offset -> WRAP(offset+buffer_len_half) : new buffer
+ * WRAP(offset+buffer_len/2-1) -> offset-1: old buffer (search buffer)
+ */
+#define WRAP_BUFFER_INDEX(lz_buff, index)  ((index) & (lz_buff->buffer_len_mask))
 
 /* debugging functions - to be removed in a release */
 void show_lz_buff(const struct lz_buffer* lz_buff);

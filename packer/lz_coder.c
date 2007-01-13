@@ -80,7 +80,7 @@ int setup_lz_buffer(struct lz_buffer* lz_buffer,const size_t buffer_len_power)
 	lz_buffer->buffer_len_mask  = lz_buffer->buffer_len - 1;
 	lz_buffer->offset           = 0;
 	lz_buffer->jarray           = (Pvoid_t) NULL;
-	lz_buffer->buffer = calloc(lz_buffer->buffer_len,1);
+	lz_buffer->buffer = calloc(lz_buffer->buffer_len+4,1);
 	if(!lz_buffer->buffer) {
 		log_debug(__LINE__,"Out of memory while trying to allocate %ld bytes",lz_buffer->buffer_len);
 		return EMEM;
@@ -134,7 +134,7 @@ void cleanup_lz_buffer(struct lz_buffer* lz_buffer)
 		judy_free_tree(lz_buffer->jarray);
 }
 
-static Pvoid_t create_judy_tree(const unsigned char* data, const ssize_t length,const size_t position) 
+static Pvoid_t create_judy_tree(const struct lz_buffer* lz_buff,const size_t offset, const ssize_t length,const size_t position) 
 {
 	Pvoid_t  PJLArray = (Pvoid_t) NULL;
 	Pvoid_t* const first_node = &PJLArray;
@@ -143,7 +143,7 @@ static Pvoid_t create_judy_tree(const unsigned char* data, const ssize_t length,
 
 	for(i=0; i < length-4 ; i += 4) {
 		Pvoid_t* next_node;
-		const uint32_t val = CHAR4_TO_UINT32(data, i);
+		const uint32_t val = CHAR4_TO_UINT32(lz_buff->buffer, WRAP_BUFFER_INDEX(lz_buff, offset+i) );
 
 		log_debug(__LINE__,"create_judy_tree: Inserting %x into JudyL array: %p -> %p\n",val, node, *node);
 
@@ -175,13 +175,16 @@ static Pvoid_t create_judy_tree(const unsigned char* data, const ssize_t length,
 }
 
 /* length must be multiple of 4 */
-static int judy_insert_bytearray(const unsigned char* data, const size_t length,Pvoid_t* node,size_t position)
+static int judy_insert_bytearray(const struct lz_buffer* lz_buff,const size_t offset, const size_t length,Pvoid_t* node,size_t position)
 {
 	size_t i;
 
+
+	memcpy(&lz_buff->buffer[lz_buff->buffer_len],&lz_buff->buffer[0],4);
+
 	for(i=0;i < length && !IS_J1P(*node); i += 4) {
 		Pvoid_t* next;
-		const uint32_t val = CHAR4_TO_UINT32(data,i);
+		const uint32_t val = CHAR4_TO_UINT32(lz_buff->buffer, WRAP_BUFFER_INDEX(lz_buff, offset + i) );
 
 		log_debug(__LINE__,"judy_insert_bytearray: Querying %x, in JudyL array %p->%p.  ",val,node,*node);
 
@@ -196,7 +199,7 @@ static int judy_insert_bytearray(const unsigned char* data, const size_t length,
 
 			log_debug(__LINE__,"judy_insert_bytearray: Inserted into %p->%p, value: %p->%p\n",node,*node,next,*next);
 
-			*next = create_judy_tree(&data[i+4],length-i-4,position);
+			*next = create_judy_tree(lz_buff, offset+i+4, length-i-4, position);
 
 			log_debug(__LINE__,"judy_insert_bytearray: Stored into :%p->%p;value: %p->%p\n",node,*node,next,*next);
 
@@ -216,12 +219,10 @@ static int judy_insert_bytearray(const unsigned char* data, const size_t length,
 
 		J1S(rc,judy1_node, position );
 
-		if(!rc) {
-			log_debug(__LINE__,"Storing Judy1 array into %p->%p\n",node,*node);
+		log_debug(__LINE__,"Storing Judy1 array into %p->%p\n",node,*node);
 
-			*node = J1P_PUT(judy1_node);
-		}
-		else if(rc == JERR)
+		*node = J1P_PUT(judy1_node);
+		if(rc == JERR)
 			return JERR;
 	}
 	return 0;
@@ -229,7 +230,7 @@ static int judy_insert_bytearray(const unsigned char* data, const size_t length,
 
 int lzbuff_insert(struct lz_buffer* lz_buff, const char c)
 {
-	const int rc = judy_insert_bytearray(lz_buff->buffer + lz_buff->offset, lz_buff->buffer_len/2, &lz_buff->jarray, lz_buff->offset);
+	const int rc = judy_insert_bytearray(lz_buff, lz_buff->offset, lz_buff->buffer_len/2, &lz_buff->jarray, lz_buff->offset);
 	/* TODO: also remove old entries */
 	lz_buff->offset = WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset + 1 );
 	/*lz_buff->buffer[ lz_buff->offset ] = c;*/
@@ -383,16 +384,22 @@ static int get_closest(const struct lz_buffer* lz_buff,const Pvoid_t* node,ssize
 }
 
 
-int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const unsigned char* data,const size_t data_len, ssize_t* distance, ssize_t* length)
+int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const size_t offset,const size_t data_len, ssize_t* distance, ssize_t* length)
 {
 	size_t i;
 	/* start searching from root array */
 	const Pvoid_t* node = &lz_buff->jarray;
 
+	memcpy(&lz_buff->buffer[lz_buff->buffer_len],&lz_buff->buffer[0],4);
+	/* when we reach end-of-buffer during a search, we would need to wrap the search,
+	 * but we can only wrap on multiples of 4, so to prevent accessing uninitialized memory,
+	 * we copy first 4 bytes, to end of buffer */
+
 	for(i=0;i < data_len && !IS_J1P(*node); i+=4) {
 		const Pvoid_t* next;
 		const Pvoid_t* prev;
-		const uint32_t orig_val = CHAR4_TO_UINT32(data, i);
+
+		const uint32_t orig_val = CHAR4_TO_UINT32(lz_buff->buffer, WRAP_BUFFER_INDEX(lz_buff, offset + i) );
 		/* indexes in the array are groups of 4 characters converted into uint32 */
 		Word_t prev_val;
 		Word_t next_val = orig_val;
@@ -452,9 +459,11 @@ int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const unsigned c
 	if(IS_J1P(*node)) {
 		int rc;
 		Pvoid_t judy1_node = J1P_GET(*node);
-		const uint32_t orig_val = CHAR4_TO_UINT32(data, i);
+		const uint32_t orig_val = CHAR4_TO_UINT32(lz_buff->buffer, WRAP_BUFFER_INDEX(lz_buff, offset + i) );
 		Word_t val = orig_val;
 		Word_t val_prev, val_next;
+
+		log_debug(__LINE__,"Retrieved original Judy1 array pointer: %p from %p->%p\n",judy1_node, node,*node);
 
 		J1_CLOSEST(rc, judy1_node, val, val_prev, val_next);
 
