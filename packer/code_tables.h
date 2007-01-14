@@ -1,8 +1,6 @@
 #ifndef _CODES_TABLE_H
 #define _CODES_TABLE_H
 
-#include "stdlib.h"
-
 static const struct {
 	ssize_t start;
 	uint8_t  extra_bits;
