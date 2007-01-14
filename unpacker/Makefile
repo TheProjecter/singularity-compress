@@ -1,0 +1,40 @@
+
+CC = i586-mingw32msvc-gcc
+AR = i586-mingw32msvc-ar
+
+#CC = gcc
+#AR = ar
+
+STRIP = strip
+
+UPX = upx
+
+CFLAGS = -Wall -DNDEBUG -Os
+LDFLAGS = 
+STRIP_FLAGS= -S
+STRIP_FLAGS2 = --remove-section=.comment
+LIB= libunpacker.a
+UPXFLAGS=--brute
+
+all: unpacker-stub
+
+clean:
+	rm -f unpacker unpacker-stub unpacker-stripped unpacker-small simple_d.o libunpacker.a
+
+simple_d.o: simple_d.c ../common/code_tables.h range_decod.h ../common/rangecod.h
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+unpacker: simple_d.o 
+	$(CC) $(LDFLAGS) -o $@ $<
+
+unpacker-stub: unpacker
+	$(STRIP) $(STRIP_FLAGS)  -o unpacker-stripped $<
+	$(STRIP) $(STRIP_FLAGS2) -o $@ unpacker-stripped
+	rm unpacker-stripped
+	rm $<
+	$(UPX) $(UPXFLAGS) $@
+	echo "#define SELF_SIZE " `wc -c $@|cut -f1 -d\ ` >sfx.h
+
+
+libunpacker.a: simple_d.o
+	$(AR) rcs $@ $@ $<
