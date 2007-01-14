@@ -46,7 +46,7 @@ static inline uint16_t length_to_code(ssize_t length,uint8_t* extra_bits,size_t*
 		low--;
 
 	*extra_data = length - code_to_length[low].start;
-	*extra_bits = code_to_length[low].start;
+	*extra_bits = code_to_length[low].extra_bits;
 
 	return low;
 }
