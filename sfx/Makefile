@@ -14,7 +14,7 @@ CFLAGS = -Wall -DNDEBUG -Os
 LDFLAGS = 
 STRIP_FLAGS= -S
 STRIP_FLAGS2 = --remove-section=.comment
-LIB= libunpack.a
+LIB= ../unpacker/libunpacker.a
 UPXFLAGS=--brute
 
 all: sfx-stub
@@ -39,5 +39,3 @@ sfx-stub: sfx
 unpack.o: unpack.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-libunpack.a: unpack.o
-	$(AR) rcs $@ $@ $<

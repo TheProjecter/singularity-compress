@@ -1,1 +1,1 @@
-#define SELF_SIZE  4096
+#define SELF_SIZE  5120

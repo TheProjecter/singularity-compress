@@ -39,6 +39,7 @@ typedef struct {
     unsigned char buffer;/* buffer for input/output */
     /* the following is used only when encoding */
     uint32_t bytecount;     /* counter for outputed bytes  */
+    FILE*    in;
     /* insert fields you need for input/output below this line! */
 } rangecoder;
 
@@ -46,7 +47,7 @@ typedef struct {
 #define Top_value ((code_value)1 << (CODE_BITS-1))
 
 #define outbyte(cod,x) putchar(x)
-#define inbyte(cod)    getchar()
+#define inbyte(cod)    getc(cod->in)
 
 #define SHIFT_BITS (CODE_BITS - 9)
 #define EXTRA_BITS ((CODE_BITS-2) % 8 + 1)

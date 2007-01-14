@@ -20,23 +20,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
 #include "../common/code_tables.h"
+
 #include "range_decod.h"
 
 #define EXTRA_SYMBOLS 28
 #define SYMBOLS (256+EXTRA_SYMBOLS)
 
-static void usage(void)
-{
-	fprintf(stderr,"simple_d [inputfile [outputfile]]\n");
-	exit(1);
-}
 
 
 static void readcounts(rangecoder *rc, freq *counters)
@@ -132,7 +127,9 @@ static freq get_symbol(const freq* counts, const freq cf)
 	return sym_lo;
 }
 
-int main( int argc, char *argv[] )
+
+
+int unpack(FILE* out,FILE* in) 
 {
 	freq cf;
 	rangecoder rc;
@@ -143,30 +140,10 @@ int main( int argc, char *argv[] )
 	buffer.len = 1<<buffer.len_power;
 	buffer.len_mask = buffer.len - 1;
 	buffer.data = malloc(buffer.len);
+	rc.in = in;
 
 	if(!buffer.data)
 		abort();
-
-	if ((argc > 3) || ((argc>1) && (argv[1][0]=='-')))
-		usage();
-
-	if ( argc<=1 )
-		fprintf( stderr, "stdin" );
-	else {  
-		freopen( argv[1], "rb", stdin );
-		fprintf( stderr, "%s", argv[1] );
-	}
-	if ( argc<=2 )
-		fprintf( stderr, " to stdout\n" );
-	else {  
-		freopen( argv[2], "wb", stdout );
-		fprintf( stderr, " to %s\n", argv[2] );
-	}
-
-#ifndef unix
-	setmode( fileno( stdin ), O_BINARY );
-	setmode( fileno( stdout ), O_BINARY );
-#endif
 
 	if (start_decoding(&rc) != 0) {   
 		fprintf(stderr,"could not suceessfully open input data\n");
@@ -239,13 +216,14 @@ int main( int argc, char *argv[] )
 				buffer.data[buffer.offset++] = symbol;
 				if(buffer.offset >= buffer.len) {
 					buffer.offset = 0;
-					fwrite(buffer.data,1,buffer.len,stdout);
+					fwrite(buffer.data,1,buffer.len,out);
 				}
 			}
 		}
 	}
-	fwrite(buffer.data,1,buffer.offset,stdout);
+	fwrite(buffer.data,1,buffer.offset,out);
 	done_decoding(&rc);
 
+	fclose(out);
 	return 0;
 }
