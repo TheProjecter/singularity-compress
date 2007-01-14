@@ -22,6 +22,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#ifndef _RANGE_DECOD_H
+#define _RANGE_DECOD_H
+
 #ifndef NDEBUG
 #define DO_CHEKCS
 #endif
@@ -119,3 +122,5 @@ static inline void done_decoding( rangecoder *rc )
 {   
 	dec_normalize(rc);      /* normalize to use up all bytes */
 }
+
+#endif
