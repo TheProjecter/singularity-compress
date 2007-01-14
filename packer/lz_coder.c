@@ -24,7 +24,8 @@
 #ifndef WIN32
 #include <netinet/in.h>
 #else
-#include <WinSock2.h>
+
+#define ntohl(x) bswap_32(x)
 #endif
 
 #include <stdarg.h>
