@@ -305,8 +305,8 @@ static inline uint8_t compare_bytes(const uint32_t a,const uint32_t b)
 static inline const Pvoid_t* get_best_match(const uint32_t orig_val, const Word_t prev_val, const Word_t next_val, const Pvoid_t* prev, const Pvoid_t* next,uint8_t* match)
 {
 	/* determine how many bytes we have matched */
-	const uint8_t match_prev = compare_bytes(next_val, orig_val);
-	const uint8_t match_next = compare_bytes(prev_val, orig_val);
+	const uint8_t match_next = compare_bytes(next_val, orig_val);
+	const uint8_t match_prev = compare_bytes(prev_val, orig_val);
 	if( match_prev < match_next) {
 		*match = match_next;
 		return next;
@@ -450,7 +450,7 @@ int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const size_t off
 			/* we encountered a mismatch */
 			node = get_best_match(orig_val, prev_val, next_val, prev, next ,&match);
 			*length = match+i;
-			return get_closest(lz_buff, next, distance);
+			return get_closest(lz_buff, node, distance);
 		}	
 		
 		node = next;
