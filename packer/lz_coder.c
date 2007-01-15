@@ -185,7 +185,7 @@ static int judy_remove_bytearray(const struct lz_buffer* lz_buff,const size_t of
 	memcpy(&lz_buff->buffer[lz_buff->buffer_len],&lz_buff->buffer[0],4);
 
 
-	if( !IS_J1P(*node) ) {
+	if( length>0 && !IS_J1P(*node) ) {
 		int rc;
 		Pvoid_t* next;
 		const uint32_t val = CHAR4_TO_UINT32(lz_buff->buffer, WRAP_BUFFER_INDEX(lz_buff, offset) );
@@ -200,12 +200,12 @@ static int judy_remove_bytearray(const struct lz_buffer* lz_buff,const size_t of
 			log_debug(__LINE__,"judy_remove_bytearray: not found:%x!\n",val);
 			return -1;
 		}		
-		rc = judy_remove_bytearray(lz_buff, offset + 4, length, next, position);
+		rc = judy_remove_bytearray(lz_buff, offset + 4, length-4, next, position);
 		if(!*next) {
 			JLD(rc, *node,val);
 		}
 		return rc;
-	} else {
+	} else if( IS_J1P(*node)) {
 		int rc;
 		Pvoid_t judy1_node  = J1P_GET(*node);
 

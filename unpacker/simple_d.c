@@ -103,6 +103,7 @@ int unpack(FILE* out,FILE* in)
 	rangecoder rc;
 	struct buffer buffer;
 	struct ari_model model;
+	size_t processed=0;
 
 	buffer.offset = 0;
 	buffer.len_power = 1+BLOCKSIZE_POWER;
@@ -165,6 +166,12 @@ int unpack(FILE* out,FILE* in)
 					fwrite(buffer.data,1,buffer.len,out);
 				}
 			}
+		}
+		processed += blocksize;
+		if(processed > 1<<19) {
+			done_decoding(&rc);
+			start_decoding(&rc);
+			processed=0;
 		}
 		/*fprintf(stderr,"%ld;;%d\n",blocksize,model.counts[SYMBOLS]);*/
        	}

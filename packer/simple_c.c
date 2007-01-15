@@ -80,7 +80,9 @@ static size_t lz_encode_buffer(struct lz_buffer* lz_buff,struct lz_extra_data* e
 	size_t i;
 	size_t extra_datas_cnt = 0;
 
-	
+/*	for(i=0;i<*len;i++)
+		lz_out_buffer[i] = lz_buff->buffer[WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset+i)];
+	return 0;*/
 	for(i=0;i < *len; i++) {
 		const char c = lz_buff->buffer[WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset)];
 		lzbuff_search_longest_match(lz_buff, lz_buff->offset, lz_buff->buffer_len/2, &distance, &length);
@@ -106,7 +108,7 @@ static size_t lz_encode_buffer(struct lz_buffer* lz_buff,struct lz_extra_data* e
 			lz_out_buffer[i] = c;
 		}
 	}
-
+	
 	for(i=0;i<lz_buff->buffer_len/2;i++)
 		lz_remove(lz_buff, lz_buff->offset+lz_buff->buffer_len/2+i);
 	return extra_datas_cnt;
@@ -134,6 +136,7 @@ int main( int argc, char *argv[] )
 	size_t j;
 	struct lz_buffer lz_buff;
 	struct ari_model model;
+	size_t processed = 0;
 
 	if ((argc > 3) || ((argc>1) && (argv[1][0]=='-')))
 		usage();
@@ -229,6 +232,14 @@ int main( int argc, char *argv[] )
 				encode_shift(&rc,(freq)1,(freq)(extra_data->distance>>8),8);
 			}
 		}
+		processed += blocksize;
+		if(processed > 1<<19) {
+			/* restart encoder */
+			done_encoding(&rc);
+			start_encoding(&rc,0,0);
+			processed=0;
+		}
+		fflush(stdout);
 		/*fprintf(stderr,"%d\n",model.counts[SYMBOLS]);*/
 	}
 
@@ -241,5 +252,6 @@ int main( int argc, char *argv[] )
 	cleanup_lz_buffer(&lz_buff);
 
 	fprintf(stderr,"Missed: %ld LZ77 encoding opportunities\n",errcnt);
+	fprintf(stderr,"Processed:%ld bytes\n",processed);
 	return 0;
 }
