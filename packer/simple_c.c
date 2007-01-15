@@ -59,13 +59,14 @@ static void usage(void)
 	exit(1);
 }
 
+static int errcnt=0;
 static int check_lz(const struct lz_buffer* lz_buff,ssize_t length,ssize_t distance)
 {
 	ssize_t i;
 	for(i=0;i<length;i++)
 		if(lz_buff->buffer[ WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset - distance + i) ] != 
 				lz_buff->buffer[ WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset + i) ] ) {
-			fprintf(stderr,"LZ error?\n");
+			errcnt++;
 			return 0;
 		}
 	return 1;
@@ -106,6 +107,8 @@ static size_t lz_encode_buffer(struct lz_buffer* lz_buff,struct lz_extra_data* e
 		}
 	}
 
+	for(i=0;i<lz_buff->buffer_len/2;i++)
+		lz_remove(lz_buff, lz_buff->offset+lz_buff->buffer_len/2+i);
 	return extra_datas_cnt;
 }
 
@@ -119,7 +122,7 @@ static void countblock(uint16_t *buffer, freq length, freq *counters)
     for (i=0; i<length; i++)
        counters[buffer[i]]++;
 }
-
+#define MIN(a,b) ((a)<(b)?(a):(b))
 int main( int argc, char *argv[] )
 {   
 	size_t blocksize;
@@ -162,8 +165,10 @@ int main( int argc, char *argv[] )
 	{   
 		freq i;
 		size_t extra_datas_cnt;
+		
+		blocksize = MIN( BLOCKSIZE, lz_buff.buffer_len - lz_buff.offset);
 		/* get the statistics */
-		blocksize = fread(lz_buff.buffer+lz_buff.offset,1,(size_t)BLOCKSIZE,stdin);
+		blocksize = fread(lz_buff.buffer+lz_buff.offset,1,(size_t)blocksize,stdin);
 
 		/* terminate if no more data */
 		if (blocksize==0) break;
@@ -235,5 +240,6 @@ int main( int argc, char *argv[] )
 	model_done(&model);
 	cleanup_lz_buffer(&lz_buff);
 
+	fprintf(stderr,"Missed: %ld LZ77 encoding opportunities\n",errcnt);
 	return 0;
 }

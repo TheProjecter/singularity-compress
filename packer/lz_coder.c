@@ -94,6 +94,9 @@ static void judy_free_tree(Pvoid_t jarray)
 {
 	Word_t Index = 0;
 
+	if(!jarray)
+		return;
+
 	if(IS_J1P(jarray)) {
 		int rc;
 		Pvoid_t judy1_node = J1P_GET(jarray);
@@ -175,6 +178,64 @@ static Pvoid_t create_judy_tree(const struct lz_buffer* lz_buff,const size_t off
 	return *first_node;
 }
 
+
+static int judy_remove_bytearray(const struct lz_buffer* lz_buff,const size_t offset,const size_t length,Pvoid_t* node,size_t position)
+{
+
+	memcpy(&lz_buff->buffer[lz_buff->buffer_len],&lz_buff->buffer[0],4);
+
+
+	if( !IS_J1P(*node) ) {
+		int rc;
+		Pvoid_t* next;
+		const uint32_t val = CHAR4_TO_UINT32(lz_buff->buffer, WRAP_BUFFER_INDEX(lz_buff, offset) );
+
+		log_debug(__LINE__,"judy_remove_bytearray: Querying %x, in JudyL array %p->%p.  ",val,node,*node);
+
+		JLG(next,*node, val);
+
+		log_debug(__LINE__,"Query result: %p->%p\n", next, next==NULL ? NULL : *next);
+
+		if(next == NULL) {
+			log_debug(__LINE__,"judy_remove_bytearray: not found:%x!\n",val);
+			return -1;
+		}		
+		rc = judy_remove_bytearray(lz_buff, offset + 4, length, next, position);
+		if(!*next) {
+			JLD(rc, *node,val);
+		}
+		return rc;
+	} else {
+		int rc;
+		Pvoid_t judy1_node  = J1P_GET(*node);
+
+		log_debug(__LINE__,"Retrieved Judy1 pointer %p from %p->%p.Removing value: %lx\n",judy1_node,node,*node, position);
+
+		J1U(rc,judy1_node, position );
+		if(!rc) {
+			log_debug(__LINE__,"judy_remove_bytearay: not Found pos:%ld!\n",position);
+		}
+
+		log_debug(__LINE__,"Storing Judy1 array into %p->%p\n",node,*node);
+
+		if(judy1_node) {
+			*node = J1P_PUT(judy1_node);
+			if(rc == JERR)
+				return JERR;
+		} else {
+			*node = NULL;
+		}
+	}
+	return 0;
+}
+
+
+int lz_remove(struct lz_buffer* lz_buff,const size_t offset)
+{
+	return judy_remove_bytearray(lz_buff,offset,lz_buff->buffer_len/2,&lz_buff->jarray,WRAP_BUFFER_INDEX(lz_buff, offset));
+}
+
+
 /* length must be multiple of 4 */
 static int judy_insert_bytearray(const struct lz_buffer* lz_buff,const size_t offset, const size_t length,Pvoid_t* node,size_t position)
 {
@@ -232,7 +293,6 @@ static int judy_insert_bytearray(const struct lz_buffer* lz_buff,const size_t of
 int lzbuff_insert(struct lz_buffer* lz_buff, const char c)
 {
 	const int rc = judy_insert_bytearray(lz_buff, lz_buff->offset, lz_buff->buffer_len/2, &lz_buff->jarray, lz_buff->offset);
-	/* TODO: also remove old entries */
 	lz_buff->offset = WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset + 1 );
 	/*lz_buff->buffer[ lz_buff->offset ] = c;*/
 	return rc;
@@ -427,7 +487,7 @@ int lzbuff_search_longest_match(const struct lz_buffer* lz_buff,const size_t off
 				}
 			}
 			else {
-				fprintf(stderr,"Empty JudyL array?\n");
+				log_debug(__LINE__,"Empty JudyL array?\n");
 				/* no value found in JudyL array, buffer is empty */
 				*length = -1;
 				*distance = 0;
