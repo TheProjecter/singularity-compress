@@ -38,4 +38,5 @@ int main( int argc, char *argv[] )
 		fprintf(stderr,"OOM!\n");
 		return 2;
 	}
+	return rc;
 }

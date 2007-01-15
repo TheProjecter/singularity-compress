@@ -29,8 +29,6 @@
 #include "range_decod.h"
 #include "../common/model.h"
 
-#define EXTRA_SYMBOLS 28
-#define SYMBOLS (256+EXTRA_SYMBOLS)
 
 
 
@@ -107,7 +105,7 @@ int unpack(FILE* out,FILE* in)
 	struct ari_model model;
 
 	buffer.offset = 0;
-	buffer.len_power = 6;
+	buffer.len_power = 1+BLOCKSIZE_POWER;
 	buffer.len = 1<<buffer.len_power;
 	buffer.len_mask = buffer.len - 1;
 	buffer.data = malloc(buffer.len);
