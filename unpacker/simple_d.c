@@ -26,20 +26,13 @@
 #include <string.h>
 
 #include "../common/code_tables.h"
-
 #include "range_decod.h"
+#include "../common/model.h"
 
 #define EXTRA_SYMBOLS 28
 #define SYMBOLS (256+EXTRA_SYMBOLS)
 
 
-
-static void readcounts(rangecoder *rc, freq *counters)
-{  
-	size_t i;
-	for (i=0; i<SYMBOLS; i++)
-		counters[i] = decode_short(rc);
-}
 
 struct buffer {
 	unsigned char* data;
@@ -103,29 +96,6 @@ static ssize_t copy_back_bytes(struct buffer* buff,ssize_t dest,ssize_t backbyte
 	return dest;
 }
 
-static freq get_symbol(const freq* counts, const freq cf)
-{
-	size_t sym_lo = 0;
-	size_t sym_hi = SYMBOLS;
-
-	do{
-		size_t middle = (sym_lo+sym_hi+1)/2;
-		/* we need +1 there, because we want last symbol that has freq <= cf */
-		if(counts[middle] > cf) {
-			sym_hi = middle - 1;
-		}
-		else if(counts[middle] < cf) {
-			sym_lo = middle + 1;
-		}
-		else {
-			sym_lo = middle;
-		}
-
-	} while(sym_lo < sym_hi);
-	if(counts[sym_lo] > cf)
-		sym_lo--;
-	return sym_lo;
-}
 
 
 
@@ -134,6 +104,7 @@ int unpack(FILE* out,FILE* in)
 	freq cf;
 	rangecoder rc;
 	struct buffer buffer;
+	struct ari_model model;
 
 	buffer.offset = 0;
 	buffer.len_power = 6;
@@ -141,56 +112,33 @@ int unpack(FILE* out,FILE* in)
 	buffer.len_mask = buffer.len - 1;
 	buffer.data = malloc(buffer.len);
 	rc.in = in;
+	model_setup(&model);
 
 	if(!buffer.data)
-		abort();
+		return -2;
 
 	if (start_decoding(&rc) != 0) {   
-		fprintf(stderr,"could not suceessfully open input data\n");
-		exit(1);
+		return -1;
 	}
 
 	while ( (cf = decode_culfreq(&rc,2)) ) {   
-		freq counts[SYMBOLS+1], i, blocksize;
+		freq i, blocksize;
 
 		decode_update(&rc,1,1,2);
-		readcounts(&rc,counts);
 
-		/*
-		fprintf(stderr,"Retrieved counters:\n");
-		for(i=0;i<SYMBOLS;i++) {
-			fprintf(stderr,"%d:%ld\n",i,counts[i]);
-		}
-		fprintf(stderr,"\n");
-		*/
-
-		/* figure out blocksize by summing counts; also use counta as in encoder */
-		blocksize = 0;
-		for (i=0; i<SYMBOLS; i++) {  
-			freq tmp = counts[i];
-			counts[i] = blocksize;
-			blocksize += tmp;
-		}
-		counts[SYMBOLS] = blocksize;
-
-		/*
-		fprintf(stderr,"Retrieved counters:\n");
-		for(i=0;i<SYMBOLS;i++) {
-			fprintf(stderr,"C%d:%ld\n",i,counts[i]);
-		}
-		fprintf(stderr,"\n");
-		*/
+		blocksize = decode_short(&rc) | ((size_t)decode_short(&rc)) <<16;
 
 		for (i=0; i<blocksize; i++) {   
 			freq symbol;
 
-			cf = decode_culfreq(&rc,blocksize);
+			cf = decode_culfreq(&rc,model.counts[SYMBOLS]);
 
-			symbol =  get_symbol(counts, cf);
+			symbol =  model_get_symbol(&model, cf);
+			decode_update(&rc, model.counts[symbol+1]-model.counts[symbol],model.counts[symbol],model.counts[SYMBOLS]);
+			model_update_freq(&model,symbol);
 
 			/*fprintf(stderr,"Decoding:%d(%c),%ld,%ld\n",symbol,symbol,counts[symbol+1]-counts[symbol],counts[symbol]);*/
 
-			decode_update(&rc, counts[symbol+1]-counts[symbol],counts[symbol],blocksize);
 			if(symbol > 0xff) {
 				const uint8_t extra_bits = code_to_length[symbol-0x100].extra_bits;
 				const size_t  extra_data = decode_culshift(&rc, extra_bits);
@@ -220,9 +168,12 @@ int unpack(FILE* out,FILE* in)
 				}
 			}
 		}
-	}
+		/*fprintf(stderr,"%ld;;%d\n",blocksize,model.counts[SYMBOLS]);*/
+       	}
 	fwrite(buffer.data,1,buffer.offset,out);
 	done_decoding(&rc);
+	model_done(&model);
+	free(buffer.data);
 
 	fclose(out);
 	return 0;

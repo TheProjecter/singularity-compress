@@ -19,16 +19,13 @@
 #include "unpack.h"
 #include "sfx.h"
 
-static const int SFX_EFILE_IN = 10;
-static const int SFX_EFILE_OUT = 11;
-static const int SFX_EFILE_SEEK = 12;
-static const int SFX_ENOUT = 13;
+#define SFX_QUIET
 
-static inline int die(const char* msg, int rc)
-{
-	perror(msg);
-	return rc;
-}
+#define SFX_EFILE_IN  10
+#define SFX_EFILE_OUT  11
+#define SFX_EFILE_SEEK  12
+#define SFX_ENOUT  13
+
 
 int main(int argc, char* argv[])
 {
@@ -36,21 +33,35 @@ int main(int argc, char* argv[])
 	FILE* fin = fopen(argv[0],"rb");
 	FILE* fout;
 
-	if(!fin) 
-		return die("Unable to open self", SFX_EFILE_IN);
+	if(!fin) {
+#ifndef SFX_QUIET
+		perror("Unable to open self");
+#endif
+		return SFX_EFILE_IN;
+	}
 
 	if(argc<2) {
+#ifndef SFX_QUIET
 		fprintf(stderr,"Usage:%s <outputfile>\n",argv[0]);
+#endif		
 		fclose(fin);
 		return SFX_ENOUT;
 	}
 
-	if( fseek(fin, SELF_SIZE, SEEK_SET) == -1)
-		return die("Unable to seek", SFX_EFILE_SEEK);
+	if( fseek(fin, SELF_SIZE, SEEK_SET) == -1) {
+#ifndef SFX_QUIET
+		perror("Unable to seek");
+#endif
+		return SFX_EFILE_SEEK;
+	}
 
 	fout = fopen(argv[1],"wb");
-	if(!fout)
-		return die("Unable to open out file", SFX_EFILE_OUT);
+	if(!fout) {
+#ifndef SFX_QUIET		
+		perror("Unable to open out file");
+#endif
+		return SFX_EFILE_OUT;
+	}
 
 	rc = unpack(fout, fin);
 

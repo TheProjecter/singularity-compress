@@ -9,6 +9,7 @@ static void usage(void)
 }
 int main( int argc, char *argv[] )
 {
+	int rc;
 	if ((argc > 3) || ((argc>1) && (argv[1][0]=='-')))
 		usage();
 
@@ -29,5 +30,12 @@ int main( int argc, char *argv[] )
 	setmode( fileno( stdin ), O_BINARY );
 	setmode( fileno( stdout ), O_BINARY );
 #endif
-	return unpack(stdout,stdin);
+	rc = unpack(stdout,stdin);
+	if(rc==-1) {
+		fprintf(stderr,"could not successfully open input data\n");
+		return 1;
+	} else if(rc==-2) {
+		fprintf(stderr,"OOM!\n");
+		return 2;
+	}
 }

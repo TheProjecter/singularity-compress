@@ -10,8 +10,8 @@ STRIP = strip
 
 UPX = upx
 
-CFLAGS = -Wall -DNDEBUG -Os
-LDFLAGS = 
+CFLAGS = -Wall -DNDEBUG -Os -s
+LDFLAGS = -Wl,-O2 -s 
 STRIP_FLAGS= -S
 STRIP_FLAGS2 = --remove-section=.comment
 LIB= ../unpacker/libunpacker.a
