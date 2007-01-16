@@ -78,7 +78,9 @@ static size_t lz_encode_buffer(struct lz_buffer* lz_buff,struct lz_extra_data* e
 	ssize_t distance;
 	ssize_t length;
 	size_t i;
+	uint8_t last=0;
 	size_t extra_datas_cnt = 0;
+
 
 /*	for(i=0;i<*len;i++)
 		lz_out_buffer[i] = lz_buff->buffer[WRAP_BUFFER_INDEX(lz_buff, lz_buff->offset+i)];

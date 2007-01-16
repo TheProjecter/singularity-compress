@@ -1,0 +1,320 @@
+%% LyX 1.4.3 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[12pt,romanian]{article}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage[latin2]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=1cm,bmargin=1cm,lmargin=1cm,rmargin=1cm,headheight=0cm,headsep=0cm,footskip=0cm}
+\usepackage{rotating}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+\newcommand{\noun}[1]{\textsc{#1}}
+%% Bold symbol macro for standard LaTeX users
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\setlength\parindent{0.5cm}
+
+\usepackage{babel}
+\makeatother
+\begin{document}
+
+\section{Range encoding}
+
+Spunând cã lãþimea unui mediu de stocare este \emph{s}, sau \emph{d}
+cifre din baza \emph{b}, înþelegem cã poate lua una din cele $s$
+valori, sau una din cele $b^{d}$ valori distince.
+
+Dacã stocãm o literã, ºi restrângem mediul de stocare la una din $t$
+valori distincte, atunci lãþimea codãrii caracterului este $s/t$,
+ºi lãþimea rãmasã este $t$, în care putem stoca un \noun{rest} de
+lãþime \emph{t} . Setul de $t$ valori ce pot reprezenta litera, se
+numeºte \noun{domeniul} literei în lãþimea spaþiului de stocare.
+
+De exemplu dacã domeniul unei litere într-un spaþiu de stocare cu
+lãþimea 256 este {[}240, 250), atunci lãþimea lilterei este 25.6,
+ºi lãþimea rãmasã este 10.
+
+Dacã un domeniu are forma $\left[B,T\right)$, atunci îl putem combina
+cu un rest prin aritmeticã simplã. Dacã dorim sã stocãm $i\in\left[0,T-B\right)$,
+ca rest pentru $\left[B,T\right)$, atunci valoarea stocatã este $B+i$
+; sau dacã $\left[i,j\right)\subseteq\left[0,T-B\right)$trebuie stocat
+ca rest parþial pentru $\left[B,T\right)$, atunci valoarea stocatã
+este constrâns la $\left[B+i,B+j\right)$.
+
+Fie $f(a)$ probabilitatea ca litera 'a' sã aparã în orice context
+dat. Presupunem cã alfabetul este ordonat, ºi definim $F(a)$ ca fiind
+probabilitatea unei literi precedente lui 'a' sã aparã în acelaºi
+context, adicã:
+
+\[
+F(a)={\displaystyle \sum_{x<a}f(x)}\]
+
+
+În continuare voi nota $f(a)$ cu $fa$, $F(a)$ cu $Fa$, $s.fa$
+cu $sfa$.
+
+\emph{Shannon} a arãtat, cã pentru minimizarea cifrelor necesare pentru
+reprezentarea mesajului într-o bazã \emph{b}, ar trebui sã codãm fiecare
+literã \emph{'a'}, a.î. lãþimea sã fie $-\log_{b}(fa)$ cifre, adicã
+$1/fa$ în lãþime absolutã.
+
+Nu putem realiza acest lucru exact, dar dacã codãm \emph{'a'} într-un
+spaþiu de stocare cu lãþimea \emph{s}, ca ºi $\left[\left\lfloor s.Fa\right\rfloor ,\left\lfloor s(fa+Fa)\right\rfloor \right]$,
+atunci lãþimea literei se aproprie de $1/fa$ pentru $s.fa\gg1$.
+Dacã $s.fa\geq1$, atunci fiecare literã se poate coda, ºi decoda
+fãrã echivoc.
+
+
+\subsection{Decodificare}
+
+O literã \emph{'a'}, împreunã cu restul sãu este codificat (într-un
+spaþiu de stocare de lãþime \emph{s}) ca $i\subseteq\left[\left\lfloor sFa\right\rfloor ,\left\lfloor s(Fa+fa)\right\rfloor \right]$.
+Fie $L(j)$ ultima literã \emph{e} din alfabet pentru care $Fe<j$.
+Putem folosi \emph{L} pentru a deduce \emph{'a'}, ºtiind \emph{i}:
+
+\begin{eqnarray*}
+\left\lfloor sFa\right\rfloor  & \leq & i<\left\lfloor s(Fa+fa)\right\rfloor \quad\Rightarrow sFa<i+1\leq s(Fa+fa)\quad\Rightarrow Fa<\frac{i+1}{s}\leq Fa+fa\end{eqnarray*}
+$\quad\Rightarrow a=L\left(\frac{i+1}{s}\right)$
+
+Trebuie þinut cont ºi de erorile de rotunjire la calcularea lui $\frac{i+1}{s}$.
+Putem verifica dacã litera este corectã prin confirmarea relaþiei
+$\left\lfloor sFa\right\rfloor \leq i<\left\lfloor s(Fa+fa)\right\rfloor $.
+
+Dupã ce am dedus \emph{'a'}, restul este $i-\left\lfloor sFa\right\rfloor $,
+ºi a fost codat cu o lãþime de $\left\lfloor s(Fa+fa)\right\rfloor -\left\lfloor sFa\right\rfloor $.
+
+
+\subsection{Algoritmul de codificare/decodificare}
+
+Dacã o literã \emph{'a'} se codificã ca $\left[B,T\right)$, lãþimea
+rãmasã este $T-B$. Dacã acesta e prea mic, îl putem extinde prin
+adãugarea unei cifre (în baza \emph{b}), domeniul devenind: $\left[Bb,Tb\right)$,
+ºi lãþimea rãmasã devine $(T-B)b$. La decodificare ignorãm cifra
+în plus, pentru cã codificarea lui \emph{'a'} în lãþimea $sb$ nu
+este neapãrat $\left[Bb,Tb\right)$.
+
+Fie $s=b^{w}$, unde $w$ este numãrul (întreg) maxim de cifre în
+baza \emph{b} pe care îl putem utiliza în mod convenabil.
+
+Codificãm prima literã a mesajului în lãþimea \emph{s}, ºi adãugãm
+atâtea cifre în coadã, cât putem fãrã sã cauzãm ca restul sã depãºeascã
+lãþimea \emph{s}.
+
+Fie lãþimea spaþiului de stocare dupã codarea a celei de a \emph{i}-a
+literã: $S_{i}$, de valoare $\left[B_{i},T_{i}\right)$; atunci putem
+coda urmãtoarea literã $A(i+1)$, in spaþiul de stocare de lãþime
+$R(i+1)$, unde:
+
+\begin{eqnarray*}
+R_{i+1} & = & (T_{i}-B_{i})b^{k(i+1)}\\
+k_{i+1} & = & w-\left\lceil \log_{b}(T_{i}-B_{i})\right\rceil \end{eqnarray*}
+
+
+Pentru $i>0$:
+
+\begin{eqnarray*}
+\left[B_{i},T_{i}\right) & = & \left[B_{i-1}b^{k_{i}}+\left\lfloor R_{i}FA_{i}\right\rfloor ,B_{i-1}b^{k_{i}}+\left\lfloor R_{i}(FA_{i}+fa_{i})\right\rfloor \right)\\
+S_{i} & = & \sum_{j=1}^{i}k_{j}\\
+\left[B_{0},T_{0}\right) & = & \left[0,1\right)\end{eqnarray*}
+
+
+
+\subsection{Exemplu de codificare}
+
+Codificarea mesajului: \emph{{}``NMLNNNKKNML''}\smallskip{}
+
+
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline 
+\begin{sideways}
+Lãþime rãmasã (ajustat)%
+\end{sideways}&
+\begin{sideways}
+litera urmãtoare%
+\end{sideways}&
+\begin{sideways}
+domeniul literei urmãtoare%
+\end{sideways}&
+\begin{sideways}
+Mesaj curent codificat%
+\end{sideways}&
+\begin{sideways}
+Domeniul curent mesajului%
+\end{sideways}&
+\begin{sideways}
+Lãþime rãmasã%
+\end{sideways}\tabularnewline
+\hline
+\hline 
+1000&
+N&
+$[580, 1000)$&
+N&
+$[580, 1000)$&
+420\tabularnewline
+\hline 
+420&
+M&
+$[130, 243)$&
+NM&
+$[710,823)$&
+113\tabularnewline
+\hline 
+113&
+L&
+$[011, 035)$&
+NML&
+$[721,745)$&
+24\tabularnewline
+\hline 
+240&
+N&
+$[139,240)$&
+NMLN&
+$[7349,\ldots450)$&
+101\tabularnewline
+\hline 
+101&
+N&
+$[058, 101)$&
+NMLNN&
+$[7407,\ldots450)$&
+43\tabularnewline
+\hline 
+430&
+N&
+$[249,430)$&
+NMLNNN&
+$[74319,\ldots500)$&
+181\tabularnewline
+\hline 
+181&
+K&
+$[000, 018)$&
+NMLNNNK&
+$[74319,\ldots337)$&
+18\tabularnewline
+\hline 
+180&
+K&
+$[000, 018)$&
+NMLNNNKK&
+$[743190,\ldots208)$&
+18\tabularnewline
+\hline 
+180&
+N&
+$[104, 180)$&
+NMLNNNKKN&
+$[7432004,\ldots080)$&
+76\tabularnewline
+\hline 
+760&
+M&
+$[235, 440)$&
+NMLNNNKKNM&
+$[73420275,\ldots480)$&
+205\tabularnewline
+\hline 
+205&
+L&
+$[020, 063)$&
+NMLNNNKKNML&
+$[73420295,\ldots338)$&
+43\tabularnewline
+\hline
+\end{tabular}
+
+\smallskip{}
+
+
+Codul complet trebuie ales cu 7 cifre semnificative (din: $[73420295,73420338)$),
+de ex: 7432031.
+
+
+\subsection{Implementare algoritm}
+
+Se observã cã în cazul unui domeniu existã 3 zone distincte:
+
+\begin{eqnarray*}
+[ & \underbrace{13}\underbrace{19}\underbrace{314} & ,\\
+ & \underbrace{13}_{z1}\underbrace{20}_{z2}\underbrace{105}_{z3} & ]\end{eqnarray*}
+
+
+\begin{description}
+\item [{Zona~z1}] constã din cifre comune tuturor numerelor din domeniu,
+deci nu vor fi afectate de alegerea restului. Aceste cifre pot fi
+scrise la ieºire.
+\item [{Zona\_z2}] constã din \emph{n} cifre formând un numãr $db^{n-1}$,
+sau $db^{n-1}-1$, unde \emph{d} este o singurã cifrã, ºi \emph{b}
+este baza codificãrii. În aceste exemplu $n=2$, ºi $d=2$. Cifrele
+din aceastã zonã pot fi afectate de alegerea restului, dar care nu
+sunt necesare pentru a distinge 2 numere din domeniu. Acestea le numim
+cifre \noun{amânate}, ºi $(d,n)$ identificã posibilele valori ale
+cifrelor. Prin convenþie, dacã $n=0\quad\Rightarrow d=0$.
+\item [{Zona~z3}] constã din \emph{w} cifre, ºi sunt suficiente pentru
+a distinge între 2 numere din domeniu.
+\end{description}
+Considerãm domeniul $[B',T']$, cu cifrele transmise: \emph{c}, ºi
+cifrele amânate reprezentate prin $(d,n)$. Fie \emph{x} cifrele transmise
+dupã rezolvarea amânãrii superior:
+
+\[
+x=cb^{n}+db^{n-1}\]
+
+
+atunci putem exprima $[B',T']$, ca: $c,(d,n),[B,T]$, unde $B=B'-xs$,
+ºi $T=T'-xs$. De exemplu $[1319314,1320105)$ devine $13,(2,2),[-686,105)$.
+
+Dacã lãþimea rãmasã este $T-B$, ºi dacã combinãm $c,(d,n),[B,T]$
+cu restul parþial $\left[i,j\right)\subseteq[0,T-B]$, atunci creãm
+domeniul $c,(d,n),[B+i,B+j]$.
+
+Dacã $B+j\leq0$ atunci putem rezolva cifra amânatã inferior, iar
+dacã $B+i\geq0$atunci îl putem rezolva superior.
+
+Acest algoritm se poate implementa simplu, fiindcã, dacã domeniul
+este $c,(d,n),[B,T]$, atunci: $-s<B<T\leq+s$, unde:
+
+\begin{description}
+\item [{d}] este o singurã cifrã
+\item [{n}] este un întreg mic
+\item [{c}] nu trebuie reþinut în codificator/decodificator
+\end{description}
+Pentru a limita numãrul de cifre amânate, putem impune o limitã superioarã.
+Putem forþa rezolvarea amânãrii prin modificarea capetelor domeniului.
+
+Ex: \[
+13,(2,3),[-660,140]\Rightarrow13,(2,3),[-660,000]\Rightarrow13199,(0,0),[340,1000)\]
+
+
+\[
+13,(2,3),[-140,660)\Rightarrow13,(2,3),[000,660)\Rightarrow13200,(0,0),[000,660)\]
+
+
+Prin acesta risipim cel mult 1 bit.
+
+\begin{thebibliography}{1}
+\bibitem{key-27}G.N.N Martin - {}``Range encoding: an algorithm
+for removing redundancy from a digitised message.'', Video \& Data
+Recording Conference, Southampton, 1979, http://www.compressconsult.com/rangecoder/rngcod.pdf.gz
+
+\bibitem{key-2} Alan Silverstein - {}``Judy IV Shop Manual'', HP
+invent, August 2002, http://judy.sourceforge.net/doc/shop\_interm.pdf
+
+\bibitem{key-3} Peter Deutsch - {}``DEFLATE Compressed Data Format
+Specification version 1.3 (RFC 1951)'', May 1996 - ftp://ftp.nic.it/rfc/rfc1951.pdf
+
+\bibitem{key-26}Matthew V. Mahoney - {}``Adaptive Weighing of Context
+Models for Lossless Data Compression'', Florida Institute of Technology
+CS Dept, Technical Report CS-2005-16, https://www.cs.fit.edu/Projects/tech\_reports/cs-2005-16.pdf
+\end{thebibliography}
+
+\end{document}
