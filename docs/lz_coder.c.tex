@@ -1,0 +1,2137 @@
+
+\ifx\sevenrm\undefined
+  \font\sevenrm=cmr7 scaled \magstep0
+\fi
+
+\newread\MyStyle
+\openin\MyStyle=src2latex.s2t
+\ifeof\MyStyle
+  \closein\MyStyle
+\else
+  \input src2latex.s2t
+  \closein\MyStyle
+\fi
+
+\ifx\gtfam\undefined
+  \ifx\dm\undefined
+    \ifx\tendm\undefined
+      \def\mc{\null}
+    \else
+      \def\mc{\tendm}
+    \fi
+  \else
+    \def\mc{\dm}
+  \fi
+  \ifx\dg\undefined
+    \ifx\tendg\undefined
+      \def\gt{\null}
+    \else
+      \def\gt{\tendg}
+    \fi
+  \else
+    \def\gt{\dg}
+  \fi
+\fi
+\ifx\sc\undefined
+  \def\sc{\null}
+\fi
+
+\tt\mc 
+
+\noindent
+\tt\mc {\tt /}{\tt *}
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em Singularity{\tt -}compress:\kern0.500em LZ77\kern0.500em encoder
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em Copyright\kern0.500em (C)\kern0.500em 2006{\tt -}2007\kern1.000em Torok\kern0.500em Edwin\kern0.500em (edwintorok@gmail.com)
+
+\noindent
+\kern0.500em {\tt *}
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em This\kern0.500em program\kern0.500em is\kern0.500em free\kern0.500em software;\kern0.500em you\kern0.500em can\kern0.500em redistribute\kern0.500em it\kern0.500em and{\tt /}or
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em modify\kern0.500em it\kern0.500em under\kern0.500em the\kern0.500em terms\kern0.500em of\kern0.500em the\kern0.500em GNU\kern0.500em General\kern0.500em Public\kern0.500em License
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em as\kern0.500em published\kern0.500em by\kern0.500em the\kern0.500em Free\kern0.500em Software\kern0.500em Foundation;\kern0.500em version\kern0.500em 2
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em of\kern0.500em the\kern0.500em License.
+
+\noindent
+\hfill
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em This\kern0.500em program\kern0.500em is\kern0.500em distributed\kern0.500em in\kern0.500em the\kern0.500em hope\kern0.500em that\kern0.500em it\kern0.500em will\kern0.500em be\kern0.500em useful,
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em but\kern0.500em WITHOUT\kern0.500em ANY\kern0.500em WARRANTY;\kern0.500em without\kern0.500em even\kern0.500em the\kern0.500em implied\kern0.500em warranty\kern0.500em of
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em MERCHANTABILITY\kern0.500em or\kern0.500em FITNESS\kern0.500em FOR\kern0.500em A\kern0.500em PARTICULAR\kern0.500em PURPOSE.\kern1.000em See\kern0.500em the
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em GNU\kern0.500em General\kern0.500em Public\kern0.500em License\kern0.500em for\kern0.500em more\kern0.500em details.
+
+\noindent
+\hfill
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em You\kern0.500em should\kern0.500em have\kern0.500em received\kern0.500em a\kern0.500em copy\kern0.500em of\kern0.500em the\kern0.500em GNU\kern0.500em General\kern0.500em Public\kern0.500em License
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em along\kern0.500em with\kern0.500em this\kern0.500em program;\kern0.500em if\kern0.500em not,\kern0.500em write\kern0.500em to\kern0.500em the\kern0.500em Free\kern0.500em Software
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em Foundation,\kern0.500em Inc.,\kern0.500em 51\kern0.500em Franklin\kern0.500em Street,\kern0.500em Fifth\kern0.500em Floor,\kern0.500em Boston,\kern0.500em MA\kern1.000em 02110{\tt -}1301,\kern0.500em USA.
+
+\noindent
+\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt <}stdint.h{\tt >}
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt <}stdio.h{\tt >}
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt <}stdlib.h{\tt >}
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt <}string.h{\tt >}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}ifndef{\tt\mc \kern0.500em}WIN32
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt <}netinet{\tt /}in.h{\tt >}
+
+\noindent
+{}{\tt\#}else
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}ntohl(x){\tt\mc \kern0.500em}bswap{\tt\_\kern.141em}32(x)
+
+\noindent
+{}{\tt\#}endif
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt <}stdarg.h{\tt >}
+
+\noindent
+{}{\tt\#}include{\tt\mc \kern0.500em}{\tt "}lz{\tt\_\kern.141em}coder.h{\tt "}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em ntohl\kern0.500em uses\kern0.500em bswap{\tt\_\kern.141em}32,\kern0.500em as\kern0.500em appropriate\kern0.500em for\kern0.500em current\kern0.500em endianness,
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em also\kern0.500em bswap{\tt\_\kern.141em}32\kern0.500em on\kern0.500em libc{\tt /}gcc\kern0.500em uses\kern0.500em asm\kern0.500em instructions\kern0.500em to\kern0.500em swap\kern0.500em bytes\kern0.500em with\kern0.500em 1\kern0.500em instruction\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}CHAR4{\tt\_\kern.141em}TO{\tt\_\kern.141em}UINT32(data,{\tt\mc \kern0.500em}i){\tt\mc \kern0.500em}ntohl(({\tt *}(const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt *})({\tt\&}data[i])))
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em Use\kern0.500em JLAP{\tt\_\kern.141em}INVALID\kern0.500em to\kern0.500em mark\kern0.500em pointers\kern0.500em to\kern0.500em {\tt "}not\kern0.500em JudyL\kern0.500em arrays{\tt "},\kern0.500em in\kern0.500em this\kern0.500em case\kern0.500em pointers\kern0.500em to\kern0.500em Judy1\kern0.500em array\kern0.500em 
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em JLAP{\tt\_\kern.141em}INVALID\kern0.500em is\kern0.500em defined\kern0.500em in\kern0.500em Judy.h,\kern0.500em and\kern0.500em is\kern0.500em currently\kern0.500em 0x1.\kern0.500em Since\kern0.500em malloc\kern0.500em returns\kern0.500em a\kern0.500em pointer\kern0.500em at\kern0.500em least\kern0.500em 4{\tt -}byte
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em aligned,\kern0.500em marking\kern0.500em it\kern0.500em with\kern0.500em 0x1,\kern0.500em allows\kern0.500em us\kern0.500em to\kern0.500em differentiate\kern0.500em Judy1,\kern0.500em and\kern0.500em JudyL\kern0.500em pointers\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}PUT({\tt\mc \kern0.500em}PJ1Array{\tt\mc \kern0.500em}){\tt\mc \kern1.000em}({\tt\mc \kern0.500em}(Pvoid{\tt\_\kern.141em}t){\tt\mc \kern0.500em}({\tt\mc \kern0.500em}(Word{\tt\_\kern.141em}t)(PJ1Array){\tt\mc \kern0.500em}{\tt |}{\tt\mc \kern0.500em}JLAP{\tt\_\kern.141em}INVALID){\tt\mc \kern0.500em})
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET({\tt\mc \kern0.500em}PJ1Array{\tt\mc \kern0.500em}){\tt\mc \kern1.000em}({\tt\mc \kern0.500em}(Pvoid{\tt\_\kern.141em}t){\tt\mc \kern0.500em}({\tt\mc \kern0.500em}(Word{\tt\_\kern.141em}t)(PJ1Array){\tt\mc \kern0.500em}{\tt\&}{\tt\mc \kern0.500em}{\tt\char'176}JLAP{\tt\_\kern.141em}INVALID){\tt\mc \kern0.500em})
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}IS{\tt\_\kern.141em}J1P({\tt\mc \kern1.000em}PJ1Array{\tt\mc \kern0.500em}){\tt\mc \kern1.000em}({\tt\mc \kern0.500em}(Word{\tt\_\kern.141em}t)(PJ1Array){\tt\mc \kern0.500em}{\tt\&}{\tt\mc \kern0.500em}JLAP{\tt\_\kern.141em}INVALID{\tt\mc \kern0.500em})
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em offset\kern0.500em {\tt -}{\tt >}\kern0.500em WRAP(offset+buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}half)\kern0.500em :\kern0.500em new\kern0.500em buffer
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em WRAP(offset+buffer{\tt\_\kern.141em}len{\tt /}2{\tt -}1)\kern0.500em {\tt -}{\tt >}\kern0.500em offset{\tt -}1:\kern0.500em old\kern0.500em buffer\kern0.500em (search\kern0.500em buffer)
+
+\noindent
+\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}index){\tt\mc \kern1.000em}((index){\tt\mc \kern0.500em}{\tt\&}{\tt\mc \kern0.500em}(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}mask))
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em error\kern0.500em values\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}EMEM{\tt\mc \kern0.500em}{\tt -}2
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em debug\kern0.500em logging\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}{\tt\#}define\kern0.500em LOG{\tt\_\kern.141em}DEBUG\kern0.500em 1{\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}if{\tt\mc \kern0.500em}!defined(NDEBUG){\tt\mc \kern0.500em}{\tt\&}{\tt\&}{\tt\mc \kern0.500em}defined(LOG{\tt\_\kern.141em}DEBUG)
+
+\noindent
+{}static{\tt\mc \kern0.500em}void{\tt\mc \kern0.500em}log{\tt\_\kern.141em}debug(const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}line,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}char{\tt *}{\tt\mc \kern0.500em}fmt,...)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}va{\tt\_\kern.141em}list{\tt\mc \kern0.500em}ap;
+
+\noindent
+{}{\tt\mc \kern4.000em}va{\tt\_\kern.141em}start(ap,fmt);
+
+\noindent
+{}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}DEBUG{\tt\mc \kern0.500em}{\tt\%}s:{\tt\mc \kern0.500em}{\tt\%}ld{\tt\mc \kern0.500em}{\tt "},{\tt\_\kern.141em}{\tt\_\kern.141em}FILE{\tt\_\kern.141em}{\tt\_\kern.141em},line);
+
+\noindent
+{}{\tt\mc \kern4.000em}vfprintf(stderr,fmt,ap);
+
+\noindent
+{}{\tt\mc \kern4.000em}va{\tt\_\kern.141em}end(ap);
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}else
+
+\noindent
+{}static{\tt\mc \kern0.500em}inline{\tt\mc \kern0.500em}void{\tt\mc \kern0.500em}log{\tt\_\kern.141em}debug(const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}line,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}char{\tt *}{\tt\mc \kern0.500em}fmt,...){\tt\mc \kern0.500em}{\tt\char'173}{\tt\char'175}
+
+\noindent
+{}{\tt\#}endif
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em {\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}{\tt *}\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}int{\tt\mc \kern0.500em}setup{\tt\_\kern.141em}lz{\tt\_\kern.141em}buffer(struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}power)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}power{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}power;
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt\mc \kern3.500em}={\tt\mc \kern0.500em}1{\tt\mc \kern0.500em}{\tt <}{\tt <}{\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}power;
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt\_\kern.141em}mask{\tt\mc \kern1.000em}={\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}offset{\tt\mc \kern5.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}jarray{\tt\mc \kern5.500em}={\tt\mc \kern0.500em}(Pvoid{\tt\_\kern.141em}t){\tt\mc \kern0.500em}NULL;
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}calloc(lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\_\kern.141em}len+4,1);
+
+\noindent
+{}{\tt\mc \kern4.000em}if(!lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Out{\tt\mc \kern0.500em}of{\tt\mc \kern0.500em}memory{\tt\mc \kern0.500em}while{\tt\mc \kern0.500em}trying{\tt\mc \kern0.500em}to{\tt\mc \kern0.500em}allocate{\tt\mc \kern0.500em}{\tt\%}ld{\tt\mc \kern0.500em}bytes{\tt "},lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\_\kern.141em}len);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}EMEM;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}void{\tt\mc \kern0.500em}judy{\tt\_\kern.141em}free{\tt\_\kern.141em}tree(Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}jarray)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}Index{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(!jarray)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(IS{\tt\_\kern.141em}J1P(jarray)){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET(jarray);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Retrieved{\tt\mc \kern0.500em}original{\tt\mc \kern0.500em}Judy1{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}pointer:{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}from{\tt\mc \kern0.500em}{\tt\%}p,{\tt\mc \kern0.500em}freeing{\tt\mc \kern0.500em}it.{\tt\char92}n{\tt "},judy1{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}jarray);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1FA(rc,{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}{\tt *}PValue;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Retrieving{\tt\mc \kern0.500em}first{\tt\mc \kern0.500em}entry{\tt\mc \kern0.500em}in{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array:{\tt\mc \kern0.500em}{\tt\%}p.{\tt\mc \kern0.500em}{\tt "},jarray);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLF(PValue,{\tt\mc \kern0.500em}jarray,{\tt\mc \kern0.500em}Index);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Retrieved{\tt\mc \kern0.500em}first{\tt\mc \kern0.500em}entry:{\tt\mc \kern0.500em}index:{\tt\mc \kern0.500em}{\tt\%}lx;{\tt\mc \kern0.500em}value:{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}{\tt -}{\tt >}{\tt\mc \kern0.500em}{\tt\%}p{\tt\char92}n{\tt "},{\tt\mc \kern0.500em}Index,{\tt\mc \kern0.500em}PValue,{\tt\mc \kern0.500em}{\tt *}PValue);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}while(PValue{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}NULL){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}At{\tt\mc \kern0.500em}entry:{\tt\mc \kern0.500em}index:{\tt\mc \kern0.500em}{\tt\%}lx,{\tt\mc \kern0.500em}value:{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}{\tt -}{\tt >}{\tt\mc \kern0.500em}{\tt\%}p{\tt\char92}n{\tt "},{\tt\mc \kern0.500em}Index,{\tt\mc \kern0.500em}PValue,{\tt\mc \kern0.500em}{\tt *}PValue);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}free{\tt\_\kern.141em}tree((Pvoid{\tt\_\kern.141em}t){\tt *}PValue);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLN(PValue,jarray,{\tt\mc \kern0.500em}Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Freeing{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array:{\tt\mc \kern0.500em}{\tt\%}p{\tt\char92}n{\tt "},jarray);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLFA(rc,jarray);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}void{\tt\mc \kern0.500em}cleanup{\tt\_\kern.141em}lz{\tt\_\kern.141em}buffer(struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}if(lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}free(lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}buffer{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}NULL;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}if(lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}jarray)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}free{\tt\_\kern.141em}tree(lz{\tt\_\kern.141em}buffer{\tt -}{\tt >}jarray);
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}create{\tt\_\kern.141em}judy{\tt\_\kern.141em}tree(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}offset,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}length,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}position){\tt\mc \kern0.500em}
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern1.000em}PJLArray{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(Pvoid{\tt\_\kern.141em}t){\tt\mc \kern0.500em}NULL;
+
+\noindent
+{}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}first{\tt\_\kern.141em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}{\tt\&}PJLArray;
+
+\noindent
+{}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}first{\tt\_\kern.141em}node;
+
+\noindent
+{}{\tt\mc \kern4.000em}ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}i;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i=0;{\tt\mc \kern0.500em}i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}length{\tt -}4{\tt\mc \kern0.500em};{\tt\mc \kern0.500em}i{\tt\mc \kern0.500em}+={\tt\mc \kern0.500em}4){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}next{\tt\_\kern.141em}node;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}CHAR4{\tt\_\kern.141em}TO{\tt\_\kern.141em}UINT32(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer,{\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset+i){\tt\mc \kern0.500em});
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}create{\tt\_\kern.141em}judy{\tt\_\kern.141em}tree:{\tt\mc \kern0.500em}Inserting{\tt\mc \kern0.500em}{\tt\%}x{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array:{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}{\tt -}{\tt >}{\tt\mc \kern0.500em}{\tt\%}p{\tt\char92}n{\tt "},val,{\tt\mc \kern0.500em}node,{\tt\mc \kern0.500em}{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLI(next{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em});
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}create{\tt\_\kern.141em}judy{\tt\_\kern.141em}tree:{\tt\mc \kern0.500em}Inserted{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p,{\tt\mc \kern0.500em}value:{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}{\tt -}{\tt >}{\tt\mc \kern0.500em}{\tt\%}p{\tt\char92}n{\tt "},{\tt\mc \kern0.500em}node,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}next{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}{\tt *}next{\tt\_\kern.141em}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if{\tt\mc \kern0.500em}(next{\tt\_\kern.141em}node{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}PJERR){\tt\mc \kern0.500em}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}PJERR;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(Pvoid{\tt\_\kern.141em}t{\tt *}){\tt\mc \kern0.500em}next{\tt\_\kern.141em}node;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}create{\tt\_\kern.141em}judy{\tt\_\kern.141em}tree:{\tt\mc \kern0.500em}Inserting{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}judy1{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p,{\tt\mc \kern0.500em}value:{\tt\%}lx{\tt\char92}n{\tt "},node,{\tt *}node,position);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1S(rc,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}position{\tt\mc \kern0.500em});
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}create{\tt\_\kern.141em}judy{\tt\_\kern.141em}tree:{\tt\mc \kern0.500em}Inserted{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(rc{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}JERR)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}PJERR;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}PUT({\tt *}node);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(i==0)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt *}node;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt *}first{\tt\_\kern.141em}node;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}int{\tt\mc \kern0.500em}judy{\tt\_\kern.141em}remove{\tt\_\kern.141em}bytearray(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}offset,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}length,Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}node,size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}position)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}memcpy({\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len],{\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[0],4);
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if({\tt\mc \kern0.500em}length{\tt >}0{\tt\mc \kern0.500em}{\tt\&}{\tt\&}{\tt\mc \kern0.500em}!IS{\tt\_\kern.141em}J1P({\tt *}node){\tt\mc \kern0.500em}){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}CHAR4{\tt\_\kern.141em}TO{\tt\_\kern.141em}UINT32(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer,{\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset){\tt\mc \kern0.500em});
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}remove{\tt\_\kern.141em}bytearray:{\tt\mc \kern0.500em}Querying{\tt\mc \kern0.500em}{\tt\%}x,{\tt\mc \kern0.500em}in{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p.{\tt\mc \kern1.000em}{\tt "},val,node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLG(next,{\tt *}node,{\tt\mc \kern0.500em}val);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Query{\tt\mc \kern0.500em}result:{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},{\tt\mc \kern0.500em}next,{\tt\mc \kern0.500em}next==NULL{\tt\mc \kern0.500em}?{\tt\mc \kern0.500em}NULL{\tt\mc \kern0.500em}:{\tt\mc \kern0.500em}{\tt *}next);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(next{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}NULL){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}remove{\tt\_\kern.141em}bytearray:{\tt\mc \kern0.500em}not{\tt\mc \kern0.500em}found:{\tt\%}x!{\tt\char92}n{\tt "},val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\mc \kern3.500em}{\tt\mc \kern4.000em}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}rc{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}judy{\tt\_\kern.141em}remove{\tt\_\kern.141em}bytearray(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}4,{\tt\mc \kern0.500em}length{\tt -}4,{\tt\mc \kern0.500em}next,{\tt\mc \kern0.500em}position);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(!{\tt *}next){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLD(rc,{\tt\mc \kern0.500em}{\tt *}node,val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\mc \kern0.500em}else{\tt\mc \kern0.500em}if({\tt\mc \kern0.500em}IS{\tt\_\kern.141em}J1P({\tt *}node)){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node{\tt\mc \kern1.000em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET({\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Retrieved{\tt\mc \kern0.500em}Judy1{\tt\mc \kern0.500em}pointer{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}from{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p.Removing{\tt\mc \kern0.500em}value:{\tt\mc \kern0.500em}{\tt\%}lx{\tt\char92}n{\tt "},judy1{\tt\_\kern.141em}node,node,{\tt *}node,{\tt\mc \kern0.500em}position);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1U(rc,judy1{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}position{\tt\mc \kern0.500em});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(!rc){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}remove{\tt\_\kern.141em}bytearay:{\tt\mc \kern0.500em}not{\tt\mc \kern0.500em}Found{\tt\mc \kern0.500em}pos:{\tt\%}ld!{\tt\char92}n{\tt "},position);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Storing{\tt\mc \kern0.500em}Judy1{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(judy1{\tt\_\kern.141em}node){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}PUT(judy1{\tt\_\kern.141em}node);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(rc{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}JERR)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}JERR;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\mc \kern0.500em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}NULL;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}int{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}remove(struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}offset)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}judy{\tt\_\kern.141em}remove{\tt\_\kern.141em}bytearray(lz{\tt\_\kern.141em}buff,offset,lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt /}2,{\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}jarray,WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset));
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em length\kern0.500em must\kern0.500em be\kern0.500em multiple\kern0.500em of\kern0.500em 4\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}static{\tt\mc \kern0.500em}int{\tt\mc \kern0.500em}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}offset,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}length,Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}node,size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}position)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}i;
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}memcpy({\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len],{\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[0],4);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i=0;i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}length{\tt\mc \kern0.500em}{\tt\&}{\tt\&}{\tt\mc \kern0.500em}!IS{\tt\_\kern.141em}J1P({\tt *}node);{\tt\mc \kern0.500em}i{\tt\mc \kern0.500em}+={\tt\mc \kern0.500em}4){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}CHAR4{\tt\_\kern.141em}TO{\tt\_\kern.141em}UINT32(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer,{\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i){\tt\mc \kern0.500em});
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray:{\tt\mc \kern0.500em}Querying{\tt\mc \kern0.500em}{\tt\%}x,{\tt\mc \kern0.500em}in{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p.{\tt\mc \kern1.000em}{\tt "},val,node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLG(next,{\tt *}node,{\tt\mc \kern0.500em}val);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Query{\tt\mc \kern0.500em}result:{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},{\tt\mc \kern0.500em}next,{\tt\mc \kern0.500em}next==NULL{\tt\mc \kern0.500em}?{\tt\mc \kern0.500em}NULL{\tt\mc \kern0.500em}:{\tt\mc \kern0.500em}{\tt *}next);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(next{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}NULL){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray:{\tt\mc \kern0.500em}Inserting{\tt\mc \kern0.500em}{\tt\%}x,{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p.{\tt\char92}n{\tt "},val,node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLI(next,{\tt\mc \kern0.500em}{\tt *}node,val);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray:{\tt\mc \kern0.500em}Inserted{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p,{\tt\mc \kern0.500em}value:{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},node,{\tt *}node,next,{\tt *}next);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}next{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}create{\tt\_\kern.141em}judy{\tt\_\kern.141em}tree(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset+i+4,{\tt\mc \kern0.500em}length{\tt -}i{\tt -}4,{\tt\mc \kern0.500em}position);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray:{\tt\mc \kern0.500em}Stored{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}:{\tt\%}p{\tt -}{\tt >}{\tt\%}p;value:{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},node,{\tt *}node,next,{\tt *}next);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if({\tt *}next{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}PJERR)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}JERR;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}else
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\mc \kern3.500em}{\tt\mc \kern4.000em}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(IS{\tt\_\kern.141em}J1P({\tt *}node)){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node{\tt\mc \kern1.000em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET({\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Retrieved{\tt\mc \kern0.500em}Judy1{\tt\mc \kern0.500em}pointer{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}from{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p.{\tt\mc \kern0.500em}Setting{\tt\mc \kern0.500em}value:{\tt\mc \kern0.500em}{\tt\%}lx{\tt\char92}n{\tt "},judy1{\tt\_\kern.141em}node,node,{\tt *}node,{\tt\mc \kern0.500em}position);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1S(rc,judy1{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}position{\tt\mc \kern0.500em});
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Storing{\tt\mc \kern0.500em}Judy1{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}into{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}PUT(judy1{\tt\_\kern.141em}node);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(rc{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}JERR)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}JERR;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}int{\tt\mc \kern0.500em}lzbuff{\tt\_\kern.141em}insert(struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}char{\tt\mc \kern0.500em}c)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}int{\tt\mc \kern0.500em}rc{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt /}2,{\tt\mc \kern0.500em}{\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}jarray,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset);
+
+\noindent
+{}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}1{\tt\mc \kern0.500em});
+
+\noindent
+{}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[\kern0.500em lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset\kern0.500em ]\kern0.500em =\kern0.500em c;{\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}int{\tt\mc \kern0.500em}get{\tt\_\kern.141em}longest{\tt\_\kern.141em}match(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt\mc \kern0.500em}{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}prev,const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}next,size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}pos,ssize{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}distance,{\tt\mc \kern0.500em}ssize{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}length)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}i;
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len{\tt /}2;
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}data{\tt\_\kern.141em}search{\tt\_\kern.141em}idx{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len{\tt /}2{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}data{\tt\_\kern.141em}buff{\tt\_\kern.141em}idx{\tt\mc \kern1.500em}={\tt\mc \kern0.500em}prev;{\tt\mc \kern0.500em}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}match{\tt\_\kern.141em}len{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}pos;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}pos;{\tt\mc \kern0.500em}i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len;{\tt\mc \kern0.500em}i++){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}data{\tt\_\kern.141em}search{\tt\_\kern.141em}idx{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i)]{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}data{\tt\_\kern.141em}buff{\tt\_\kern.141em}idx{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i)]){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}match{\tt\_\kern.141em}len{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}i{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}break;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(i{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em entire\kern0.500em buffer\kern0.500em matches\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}length{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}prev);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}data{\tt\_\kern.141em}buff{\tt\_\kern.141em}idx{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}pos;{\tt\mc \kern0.500em}i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len;{\tt\mc \kern0.500em}i++){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}data{\tt\_\kern.141em}search{\tt\_\kern.141em}idx{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i)]{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}data{\tt\_\kern.141em}buff{\tt\_\kern.141em}idx{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i)]){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(i{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}1{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}match{\tt\_\kern.141em}len){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em data{\tt\_\kern.141em}buff{\tt\_\kern.141em}idx\kern0.500em =\kern0.500em prev\kern0.500em has\kern0.500em a\kern0.500em longer\kern0.500em match\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}prev);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}match{\tt\_\kern.141em}len{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}i{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}next);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}length{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}match{\tt\_\kern.141em}len;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em entire\kern0.500em buffer\kern0.500em matches\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt *}length{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}buffer{\tt\_\kern.141em}half{\tt\_\kern.141em}len;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}prev);
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em return\kern0.500em number\kern0.500em of\kern0.500em bytes\kern0.500em that\kern0.500em match,
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em we\kern0.500em always\kern0.500em assume\kern0.500em big\kern0.500em endian,\kern0.500em since\kern0.500em 
+
+\noindent
+\kern0.500em {\tt *}\kern0.500em 0x30313233,\kern0.500em comes\kern0.500em from\kern0.500em the\kern0.500em string\kern0.500em {\tt "}0123{\tt "}\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}static{\tt\mc \kern0.500em}inline{\tt\mc \kern0.500em}uint8{\tt\_\kern.141em}t{\tt\mc \kern0.500em}compare{\tt\_\kern.141em}bytes(const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}a,const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}b)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}c{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}a{\tt\mc \kern0.500em}{\tt\char'136}{\tt\mc \kern0.500em}b;\rm\mc {\tt /}{\tt *}will\kern0.500em be\kern0.500em 0\kern0.500em where\kern0.500em there\kern0.500em is\kern0.500em a\kern0.500em match{\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}if(c{\tt\&}0xff000000){\tt\mc \kern0.500em}\rm\mc {\tt /}{\tt *}\kern0.500em if\kern0.500em there\kern0.500em are\kern0.500em any\kern0.500em 1's\kern0.500em there,\kern0.500em we\kern0.500em got\kern0.500em a\kern0.500em mismatch\kern0.500em in\kern0.500em the\kern0.500em very\kern0.500em first\kern0.500em byte\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}if(c{\tt\&}0x00ff0000)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}if(c{\tt\&}0x0000ff00)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}2;
+
+\noindent
+{}{\tt\mc \kern4.000em}if(c{\tt\&}0x000000ff)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}3;
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}4;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}inline{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}get{\tt\_\kern.141em}best{\tt\_\kern.141em}match(const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}next{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}prev,{\tt\mc \kern0.500em}const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}next,uint8{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}match)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em determine\kern0.500em how\kern0.500em many\kern0.500em bytes\kern0.500em we\kern0.500em have\kern0.500em matched\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint8{\tt\_\kern.141em}t{\tt\mc \kern0.500em}match{\tt\_\kern.141em}next{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}compare{\tt\_\kern.141em}bytes(next{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint8{\tt\_\kern.141em}t{\tt\mc \kern0.500em}match{\tt\_\kern.141em}prev{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}compare{\tt\_\kern.141em}bytes(prev{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}if({\tt\mc \kern0.500em}match{\tt\_\kern.141em}prev{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}match{\tt\_\kern.141em}next){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}match{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}match{\tt\_\kern.141em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt *}match{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}match{\tt\_\kern.141em}prev;
+
+\noindent
+{}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}prev;
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}\kern0.500em gets\kern0.500em index\kern0.500em that\kern0.500em is\kern0.500em closest\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}J1{\tt\_\kern.141em}CLOSEST(rc,{\tt\mc \kern0.500em}J1Array,{\tt\mc \kern0.500em}search{\tt\_\kern.141em}index,{\tt\mc \kern1.000em}prev{\tt\_\kern.141em}index,{\tt\mc \kern0.500em}next{\tt\_\kern.141em}index){\tt\mc \kern0.500em}{\tt\char92}
+
+\noindent
+{}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}(next{\tt\_\kern.141em}index){\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(search{\tt\_\kern.141em}index);{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}J1F((rc),{\tt\mc \kern0.500em}(J1Array),{\tt\mc \kern0.500em}(next{\tt\_\kern.141em}index));{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}if(!(rc)){\tt\mc \kern0.500em}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}(prev{\tt\_\kern.141em}index){\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(search{\tt\_\kern.141em}index);{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1P((rc),{\tt\mc \kern0.500em}(J1Array),{\tt\mc \kern0.500em}(prev{\tt\_\kern.141em}index));{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if((rc)){\tt\mc \kern0.500em}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}(next{\tt\_\kern.141em}index){\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(prev{\tt\_\kern.141em}index);{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1N((rc),{\tt\mc \kern0.500em}(J1Array),{\tt\mc \kern0.500em}(next{\tt\_\kern.141em}index));{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if((next{\tt\_\kern.141em}index){\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}(search{\tt\_\kern.141em}index)){\tt\mc \kern0.500em}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}(prev{\tt\_\kern.141em}index){\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(next{\tt\_\kern.141em}index);{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1P((rc),{\tt\mc \kern0.500em}(J1Array),{\tt\mc \kern0.500em}(prev{\tt\_\kern.141em}index));{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\char92}
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\#}define{\tt\mc \kern0.500em}J1{\tt\_\kern.141em}NEIGHBOUR(rc,{\tt\mc \kern0.500em}J1Array,{\tt\mc \kern0.500em}search{\tt\_\kern.141em}index,{\tt\mc \kern0.500em}neighbour{\tt\_\kern.141em}index){\tt\mc \kern0.500em}{\tt\char92}
+
+\noindent
+{}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}(neighbour{\tt\_\kern.141em}index){\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(search{\tt\_\kern.141em}index);{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}J1F((rc),{\tt\mc \kern0.500em}(J1Array),{\tt\mc \kern0.500em}(neighbour{\tt\_\kern.141em}index));{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}if(!(rc)){\tt\mc \kern0.500em}{\tt\char'173}{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}(neighbour{\tt\_\kern.141em}index){\tt\mc \kern0.500em}={\tt\mc \kern0.500em}(search{\tt\_\kern.141em}index);{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1P((rc),{\tt\mc \kern0.500em}(J1Array),{\tt\mc \kern0.500em}(neighbour{\tt\_\kern.141em}index));{\tt\char92}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\char92}
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}int{\tt\mc \kern0.500em}get{\tt\_\kern.141em}closest(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}node,ssize{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}distance)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em now\kern0.500em walk\kern0.500em the\kern0.500em array\kern0.500em of\kern0.500em JudyL\kern0.500em arrays,\kern0.500em till\kern0.500em we\kern0.500em reach\kern0.500em judy1\kern0.500em pointers,\kern0.500em and\kern0.500em then\kern0.500em select\kern0.500em the
+
+\noindent
+{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em position\kern0.500em stored\kern0.500em there\kern0.500em that\kern0.500em is\kern0.500em closest\kern0.500em to\kern0.500em current\kern0.500em offset{\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}while(node{\tt\mc \kern0.500em}{\tt\&}{\tt\&}{\tt\mc \kern0.500em}!IS{\tt\_\kern.141em}J1P({\tt *}node)){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}{\tt *}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLF(next,{\tt *}node,val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(node{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}NULL){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}Warning:{\tt\mc \kern0.500em}encountered{\tt\mc \kern0.500em}unexpected{\tt\mc \kern0.500em}empty{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array{\tt "});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt -}2;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET({\tt *}node);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em};
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1{\tt\_\kern.141em}NEIGHBOUR(rc,{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset,{\tt\mc \kern0.500em}val);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(!rc){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}Emtpy{\tt\mc \kern0.500em}judy1{\tt\mc \kern0.500em}array?{\tt\char92}n{\tt "});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}int{\tt\mc \kern0.500em}lzbuff{\tt\_\kern.141em}search{\tt\_\kern.141em}longest{\tt\_\kern.141em}match(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}offset,const{\tt\mc \kern0.500em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}data{\tt\_\kern.141em}len,{\tt\mc \kern0.500em}ssize{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}distance,{\tt\mc \kern0.500em}ssize{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}length)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}i;
+
+\noindent
+{}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em start\kern0.500em searching\kern0.500em from\kern0.500em root\kern0.500em array\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}{\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}jarray;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}memcpy({\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len],{\tt\&}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[0],4);
+
+\noindent
+{}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em when\kern0.500em we\kern0.500em reach\kern0.500em end{\tt -}of{\tt -}buffer\kern0.500em during\kern0.500em a\kern0.500em search,\kern0.500em we\kern0.500em would\kern0.500em need\kern0.500em to\kern0.500em wrap\kern0.500em the\kern0.500em search,
+
+\noindent
+{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em but\kern0.500em we\kern0.500em can\kern0.500em only\kern0.500em wrap\kern0.500em on\kern0.500em multiples\kern0.500em of\kern0.500em 4,\kern0.500em so\kern0.500em to\kern0.500em prevent\kern0.500em accessing\kern0.500em uninitialized\kern0.500em memory,
+
+\noindent
+{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em we\kern0.500em copy\kern0.500em first\kern0.500em 4\kern0.500em bytes,\kern0.500em to\kern0.500em end\kern0.500em of\kern0.500em buffer\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i=0;i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}data{\tt\_\kern.141em}len{\tt\mc \kern0.500em}{\tt\&}{\tt\&}{\tt\mc \kern0.500em}!IS{\tt\_\kern.141em}J1P({\tt *}node);{\tt\mc \kern0.500em}i+=4){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}Pvoid{\tt\_\kern.141em}t{\tt *}{\tt\mc \kern0.500em}prev;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}CHAR4{\tt\_\kern.141em}TO{\tt\_\kern.141em}UINT32(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer,{\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i){\tt\mc \kern0.500em});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em indexes\kern0.500em in\kern0.500em the\kern0.500em array\kern0.500em are\kern0.500em groups\kern0.500em of\kern0.500em 4\kern0.500em characters\kern0.500em converted\kern0.500em into\kern0.500em uint32\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}next{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em search\kern0.500em the\kern0.500em first\kern0.500em index\kern0.500em {\tt >}=\kern0.500em than\kern0.500em the\kern0.500em value\kern0.500em we\kern0.500em search\kern0.500em for,
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em or\kern0.500em if\kern0.500em it\kern0.500em doesn't\kern0.500em exist,\kern0.500em then\kern0.500em the\kern0.500em index\kern0.500em lower\kern0.500em than\kern0.500em it
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em next\kern0.500em is\kern0.500em the\kern0.500em value\kern0.500em contained\kern0.500em in\kern0.500em the\kern0.500em JudyL\kern0.500em array\kern0.500em at\kern0.500em index\kern0.500em val
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em It\kern0.500em is\kern0.500em really\kern0.500em a\kern0.500em pointer\kern0.500em to\kern0.500em another\kern0.500em JudyL\kern0.500em array\kern0.500em (if\kern0.500em IS{\tt\_\kern.141em}J1P({\tt *}next)\kern0.500em ==\kern0.500em 0)\kern0.500em ;
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\kern0.500em {\tt *}\kern0.500em Or\kern0.500em it\kern0.500em is\kern0.500em a\kern0.500em pointer\kern0.500em to\kern0.500em a\kern0.500em Judy1\kern0.500em array\kern0.500em if\kern0.500em IS{\tt\_\kern.141em}J1P({\tt *}next)\kern0.500em ==\kern0.500em 1
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLF({\tt\mc \kern0.500em}next,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}next{\tt\_\kern.141em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(!next){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}prev{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLP(prev,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(prev){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em previous\kern0.500em found,\kern0.500em search\kern0.500em for\kern0.500em next\kern0.500em neighbour\kern0.500em now\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}next{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLN(next,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}next{\tt\_\kern.141em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(!next){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em array\kern0.500em has\kern0.500em only\kern0.500em 1\kern0.500em element\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}next{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}prev;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}next{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Empty{\tt\mc \kern0.500em}JudyL{\tt\mc \kern0.500em}array?{\tt\char92}n{\tt "});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em no\kern0.500em value\kern0.500em found\kern0.500em in\kern0.500em JudyL\kern0.500em array,\kern0.500em buffer\kern0.500em is\kern0.500em empty\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}length{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(next{\tt\_\kern.141em}val{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}prev{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLP(prev,{\tt\mc \kern0.500em}{\tt *}node,{\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(!prev){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em array\kern0.500em has\kern0.500em only\kern0.500em 1\kern0.500em element\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}prev{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}prev{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(next{\tt\_\kern.141em}val{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}uint8{\tt\_\kern.141em}t{\tt\mc \kern0.500em}match;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em we\kern0.500em encountered\kern0.500em a\kern0.500em mismatch\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}get{\tt\_\kern.141em}best{\tt\_\kern.141em}match(orig{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}prev{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}next{\tt\_\kern.141em}val,{\tt\mc \kern0.500em}prev,{\tt\mc \kern0.500em}next{\tt\mc \kern0.500em},{\tt\&}match);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}length{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}match+i;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}get{\tt\_\kern.141em}closest(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}node,{\tt\mc \kern0.500em}distance);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\mc \kern3.500em}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}next;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(IS{\tt\_\kern.141em}J1P({\tt *}node)){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET({\tt *}node);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}const{\tt\mc \kern0.500em}uint32{\tt\_\kern.141em}t{\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}CHAR4{\tt\_\kern.141em}TO{\tt\_\kern.141em}UINT32(lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer,{\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern0.500em}offset{\tt\mc \kern0.500em}+{\tt\mc \kern0.500em}i){\tt\mc \kern0.500em});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}val{\tt\_\kern.141em}prev,{\tt\mc \kern0.500em}val{\tt\_\kern.141em}next;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}Retrieved{\tt\mc \kern0.500em}original{\tt\mc \kern0.500em}Judy1{\tt\mc \kern0.500em}array{\tt\mc \kern0.500em}pointer:{\tt\mc \kern0.500em}{\tt\%}p{\tt\mc \kern0.500em}from{\tt\mc \kern0.500em}{\tt\%}p{\tt -}{\tt >}{\tt\%}p{\tt\char92}n{\tt "},judy1{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}node,{\tt *}node);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1{\tt\_\kern.141em}CLOSEST(rc,{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node,{\tt\mc \kern0.500em}val,{\tt\mc \kern0.500em}val{\tt\_\kern.141em}prev,{\tt\mc \kern0.500em}val{\tt\_\kern.141em}next);
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(val{\tt\_\kern.141em}next{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}orig{\tt\_\kern.141em}val){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}get{\tt\_\kern.141em}longest{\tt\_\kern.141em}match(lz{\tt\_\kern.141em}buff,val{\tt\_\kern.141em}prev,{\tt\mc \kern0.500em}val{\tt\_\kern.141em}next,i,{\tt\mc \kern0.500em}distance,{\tt\mc \kern0.500em}length);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}distance{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}{\tt -}data{\tt\_\kern.141em}len;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt *}length{\tt\mc \kern0.500em}{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}data{\tt\_\kern.141em}len;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}return{\tt\mc \kern0.500em}{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}\rm\mc {\tt /}{\tt *}\kern0.500em assertion\kern0.500em failure\kern0.500em {\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}{\tt\mc \kern3.500em}
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\hfill
+
+\noindent
+{}static{\tt\mc \kern0.500em}void{\tt\mc \kern0.500em}judy{\tt\_\kern.141em}show{\tt\_\kern.141em}tree(Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}jarray,int{\tt\mc \kern0.500em}level)
+
+\noindent
+{}{\tt\char'173}{\tt\mc \kern3.500em}
+
+\noindent
+{}{\tt\mc \kern4.000em}char{\tt *}{\tt\mc \kern0.500em}spaces{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}malloc(level+1);
+
+\noindent
+{}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}Index{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}memset(spaces,0x20,level);
+
+\noindent
+{}{\tt\mc \kern4.000em}spaces[level]{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}if(IS{\tt\_\kern.141em}J1P(jarray)){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}int{\tt\mc \kern0.500em}rc;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t{\tt\mc \kern0.500em}judy1{\tt\_\kern.141em}node{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}J1P{\tt\_\kern.141em}GET(jarray);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1F(rc,judy1{\tt\_\kern.141em}node,Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}while(rc){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}:{\tt\%}s{\tt\%}lx{\tt\char92}n{\tt "},spaces,Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}J1N(rc,judy1{\tt\_\kern.141em}node,Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}else{\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}Word{\tt\_\kern.141em}t{\tt\mc \kern0.500em}{\tt *}{\tt\mc \kern0.500em}PValue;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}log{\tt\_\kern.141em}debug({\tt\_\kern.141em}{\tt\_\kern.141em}LINE{\tt\_\kern.141em}{\tt\_\kern.141em},{\tt "}querying{\tt\mc \kern0.500em}first:{\tt\%}p{\tt\char92}n{\tt "},jarray);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLF(PValue,{\tt\mc \kern0.500em}jarray,{\tt\mc \kern0.500em}Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}while(PValue{\tt\mc \kern0.500em}!={\tt\mc \kern0.500em}NULL){\tt\mc \kern0.500em}{\tt\char'173}{\tt\mc \kern0.500em}{\tt\mc \kern4.000em}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt\%}s{\tt\%}lx{\tt\char92}n{\tt "},spaces,Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}show{\tt\_\kern.141em}tree((Pvoid{\tt\_\kern.141em}t){\tt *}PValue,{\tt\mc \kern0.500em}level+1);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}JLN(PValue,{\tt\mc \kern0.500em}jarray,{\tt\mc \kern0.500em}Index);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}free(spaces);
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}void{\tt\mc \kern0.500em}show{\tt\_\kern.141em}lz{\tt\_\kern.141em}buff(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}i;
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i=0;i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len;i++){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(i{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt |}{\tt "});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt\%}02x{\tt\mc \kern0.500em}{\tt "},lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[i]);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt\char92}n{\tt "});
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}void{\tt\mc \kern0.500em}show{\tt\_\kern.141em}match(const{\tt\mc \kern0.500em}struct{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buffer{\tt *}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff,ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}distance,ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}length)
+
+\noindent
+{}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}start{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}WRAP{\tt\_\kern.141em}BUFFER{\tt\_\kern.141em}INDEX(lz{\tt\_\kern.141em}buff,{\tt\mc \kern1.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}offset{\tt\mc \kern0.500em}{\tt -}{\tt\mc \kern0.500em}distance);
+
+\noindent
+{}{\tt\mc \kern4.000em}
+
+\noindent
+{}{\tt\mc \kern4.000em}ssize{\tt\_\kern.141em}t{\tt\mc \kern0.500em}match{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}{\tt -}1;
+
+\noindent
+{}{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t{\tt\mc \kern0.500em}i;
+
+\noindent
+{}\hfill
+
+\noindent
+{}{\tt\mc \kern4.000em}for(i=0;i{\tt\mc \kern0.500em}{\tt <}{\tt\mc \kern0.500em}lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer{\tt\_\kern.141em}len;i++){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(i{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}start){\tt\mc \kern0.500em}{\tt\char'173}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt <}{\tt "});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}match{\tt\mc \kern0.500em}={\tt\mc \kern0.500em}0;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(match{\tt\mc \kern0.500em}{\tt >}={\tt\mc \kern0.500em}0)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}match++;
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt\%}02x{\tt\mc \kern0.500em}{\tt "},lz{\tt\_\kern.141em}buff{\tt -}{\tt >}buffer[i]);
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(match{\tt\mc \kern0.500em}=={\tt\mc \kern0.500em}length)
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}printf({\tt "}{\tt >}{\tt "});
+
+\noindent
+{}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{}{\tt\mc \kern4.000em}fprintf(stderr,{\tt "}{\tt\char92}n{\tt "});
+
+\noindent
+{}{\tt\char'175}
+
+\noindent
+{}\hfill
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}
+
+\noindent
+int\kern0.500em main(int\kern0.500em argc,char{\tt *}\kern0.500em argv[])
+
+\noindent
+{\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}const\kern0.500em unsigned\kern0.500em char\kern0.500em test[]\kern0.500em =\kern0.500em {\tt "}0123456789012345{\tt "};
+
+\noindent
+{\tt\mc \kern4.000em}const\kern0.500em size{\tt\_\kern.141em}t\kern0.500em len\kern0.500em =\kern0.500em sizeof(test){\tt -}1;
+
+\noindent
+{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t\kern0.500em i;
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}struct\kern0.500em lz{\tt\_\kern.141em}buffer\kern2.000em lz{\tt\_\kern.141em}buff;
+
+\noindent
+{\tt\mc \kern4.000em}FILE{\tt *}\kern0.500em out\kern0.500em =\kern0.500em fopen({\tt "}{\tt /}tmp{\tt /}testout{\tt "},{\tt "}w{\tt "});
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}setup{\tt\_\kern.141em}lz{\tt\_\kern.141em}buffer({\tt\&}lz{\tt\_\kern.141em}buff,5);
+
+\noindent
+\hfill
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}\kern0.500em this\kern0.500em will\kern0.500em be\kern0.500em replaced\kern0.500em by\kern0.500em a\kern0.500em read()\kern0.500em 
+
+\noindent
+{\tt\mc \kern4.000em}for(i=0;i\kern0.500em {\tt <}\kern0.500em len;i++)\kern0.500em {\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}lz{\tt\_\kern.141em}buff.buffer[lz{\tt\_\kern.141em}buff.offset\kern0.500em +\kern0.500em i]\kern0.500em =\kern0.500em test[i];
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+\hfill
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}for(i=0;\kern0.500em i\kern0.500em {\tt <}\kern0.500em len;)\kern0.500em {\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}ssize{\tt\_\kern.141em}t\kern0.500em distance;
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}ssize{\tt\_\kern.141em}t\kern1.000em length;
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}show{\tt\_\kern.141em}lz{\tt\_\kern.141em}buff({\tt\&}lz{\tt\_\kern.141em}buff);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}lzbuff{\tt\_\kern.141em}search{\tt\_\kern.141em}longest{\tt\_\kern.141em}match({\tt\&}lz{\tt\_\kern.141em}buff,\kern0.500em {\tt\&}lz{\tt\_\kern.141em}buff.buffer[lz{\tt\_\kern.141em}buff.offset],\kern0.500em lz{\tt\_\kern.141em}buff.buffer{\tt\_\kern.141em}len{\tt /}2,\kern0.500em {\tt\&}distance,\kern0.500em {\tt\&}length);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}show{\tt\_\kern.141em}match({\tt\&}lz{\tt\_\kern.141em}buff,distance,length);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}lzbuff{\tt\_\kern.141em}insert({\tt\&}lz{\tt\_\kern.141em}buff,\kern0.500em lz{\tt\_\kern.141em}buff.buffer[lz{\tt\_\kern.141em}buff.offset\kern0.500em +\kern0.500em i]);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}show{\tt\_\kern.141em}lz{\tt\_\kern.141em}buff({\tt\&}lz{\tt\_\kern.141em}buff);
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}show{\tt\_\kern.141em}tree(lz{\tt\_\kern.141em}buff.jarray,0);
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}printf({\tt "}match:{\tt\%}ld,{\tt\%}ld{\tt\char92}n{\tt "},distance,length);
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}if(length\kern0.500em {\tt <}\kern0.500em 3)\kern0.500em {\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}length\kern0.500em =\kern0.500em 1;
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}else\kern0.500em {\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}i\kern0.500em +=\kern0.500em length;
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{\tt\mc \kern4.000em}cleanup{\tt\_\kern.141em}lz{\tt\_\kern.141em}buffer({\tt\&}lz{\tt\_\kern.141em}buff);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}return\kern0.500em 0;
+
+\noindent
+{\tt\char'175}
+
+\noindent
+{\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}\tt\mc {\tt /}{\tt *}
+
+\noindent
+int\kern0.500em main(int\kern0.500em argc,char{\tt *}\kern0.500em argv[])
+
+\noindent
+{\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}Pvoid{\tt\_\kern.141em}t\kern0.500em jarray\kern0.500em =\kern0.500em (Pvoid{\tt\_\kern.141em}t)\kern0.500em NULL;
+
+\noindent
+{\tt\mc \kern4.000em}const\kern0.500em size{\tt\_\kern.141em}t\kern0.500em len\kern0.500em =\kern0.500em 16{\tt *}2;
+
+\noindent
+{\tt\mc \kern4.000em}const\kern0.500em size{\tt\_\kern.141em}t\kern0.500em maxIdx\kern0.500em =\kern0.500em 8;
+
+\noindent
+{\tt\mc \kern4.000em}unsigned\kern0.500em char{\tt *}\kern0.500em test\kern0.500em =\kern0.500em malloc(len+1);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}const\kern0.500em unsigned\kern0.500em char\kern0.500em test2[]\kern0.500em =\kern0.500em {\tt "}0123456789012346{\tt "};
+
+\noindent
+{\tt\mc \kern4.000em}const\kern0.500em size{\tt\_\kern.141em}t\kern0.500em len2\kern0.500em =\kern0.500em sizeof(test){\tt -}1;
+
+\noindent
+{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t\kern0.500em i;
+
+\noindent
+{\tt\mc \kern4.000em}ssize{\tt\_\kern.141em}t\kern0.500em distance=0;
+
+\noindent
+{\tt\mc \kern4.000em}size{\tt\_\kern.141em}t\kern0.500em length=0;
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}srand(2);
+
+\noindent
+{\tt\mc \kern4.000em}for(i=0;i{\tt <}len{\tt /}2;i++)\kern0.500em {\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}test[i]\kern0.500em =\kern0.500em test2[i{\tt\%}len2];
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{\tt\mc \kern4.000em}test[len]=0;
+
+\noindent
+{\tt\mc \kern4.000em}for(i=0;i{\tt <}len{\tt /}2;i++)\kern0.500em {\tt\char'173}
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray(test+i,maxIdx,{\tt\&}jarray,i);
+
+\noindent
+{\tt\mc \kern4.000em}{\tt\char'175}
+
+\noindent
+{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}insert{\tt\_\kern.141em}bytearray(test,maxIdx,{\tt\&}jarray,0);
+
+\noindent
+\hfill
+
+\noindent
+{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}show{\tt\_\kern.141em}tree(jarray,0);
+
+\noindent
+{\tt\mc \kern4.000em}struct\kern0.500em lz{\tt\_\kern.141em}buffer\kern0.500em buff;
+
+\noindent
+{\tt\mc \kern4.000em}lzbuff{\tt\_\kern.141em}search{\tt\_\kern.141em}longest{\tt\_\kern.141em}match({\tt\&}buff,test2+10,len2{\tt -}10,{\tt\&}distance,{\tt\&}length);
+
+\noindent
+{\tt\mc \kern4.000em}printf({\tt "}{\tt\%}ld:{\tt\%}ld{\tt\char92}n{\tt "},distance,length);
+
+\noindent
+{\tt\mc \kern4.000em}judy{\tt\_\kern.141em}free{\tt\_\kern.141em}tree(jarray);
+
+\noindent
+{\tt\mc \kern4.000em}jarray\kern0.500em =\kern0.500em NULL;
+
+\noindent
+{\tt\mc \kern4.000em}return\kern0.500em 0;
+
+\noindent
+{\tt\char'175}
+
+\noindent
+{\tt *}{\tt /}
+\tt\mc 
+
+\noindent
+{}
+
+\rm\mc
+

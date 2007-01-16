@@ -4,6 +4,7 @@
 \begin_header
 \textclass article
 \begin_preamble
+\usepackage{position,fancyhdr}
 \setlength\parindent{0.5cm}
 \end_preamble
 \language romanian
@@ -3035,6 +3036,17 @@ lgorithm.pdf
 Programul singularity-compress
 \end_layout
 
+\begin_layout Standard
+Se gãseºte ºi la http://code.google.com/p/singularity-compress/ , http://singulari
+ty-compress.googlecode.com/svn/trunk/.
+\end_layout
+
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
 \begin_layout Subsection
 mk_codes.c
 \begin_inset LatexCommand \label{sub:mk_codes.c}
@@ -3044,9 +3056,452 @@ mk_codes.c
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{mk_codes.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 lz_coder.c
 \begin_inset LatexCommand \label{sub:lz_coder.c}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{lz_coder.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+lz_coder.h
+\begin_inset LatexCommand \label{sub:lz_coder.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{lz_coder_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+range_encoder.h
+\begin_inset LatexCommand \label{sub:range_encoder.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{range_encoder_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+range_decod.h
+\begin_inset LatexCommand \label{sub:range_decod.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{range_decod_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+codes.h
+\begin_inset LatexCommand \label{sub:codes.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{codes_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+code_tables.h
+\begin_inset LatexCommand \label{sub:code_tables.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{code_tables_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+model.h
+\begin_inset LatexCommand \label{sub:model.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{model_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+rangecod.h
+\begin_inset LatexCommand \label{sub:rangecod.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{rangecod_h.tex}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+simple_c.c
+\begin_inset LatexCommand \label{sub:simple_c.c}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{simple_c.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+range_decod.h
+\begin_inset LatexCommand \label{sub:range_decod.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{range_decod_h.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+simple_d.c
+\begin_inset LatexCommand \label{sub:simple_d.c}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{simple_d.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+unpacker_main.c
+\begin_inset LatexCommand \label{sub:unpacker_main.c}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{unpacker_main.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+sfx.c
+\begin_inset LatexCommand \label{sub:sfx.c}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{sfx_c.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+unpack.h
+\begin_inset LatexCommand \label{sub:unpack.h}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{unpack_h.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+unpack.c
+\begin_inset LatexCommand \label{sub:unpack.c}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{unpack_c.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Makefile.sfx
+\begin_inset LatexCommand \label{sub:Makefile.sfx}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{Makefile.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
 
 \end_inset
 

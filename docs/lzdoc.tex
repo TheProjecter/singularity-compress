@@ -7,29 +7,35 @@
 \usepackage{geometry}
 \geometry{verbose,a4paper,tmargin=1cm,bmargin=1cm,lmargin=1cm,rmargin=1cm,headheight=0cm,headsep=0cm,footskip=0cm}
 \usepackage{rotating}
+\usepackage{varioref}
+\usepackage{amsmath}
 
 \makeatletter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
 \newcommand{\noun}[1]{\textsc{#1}}
-%% Bold symbol macro for standard LaTeX users
-\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
-
 %% Because html converters don't know tabularnewline
 \providecommand{\tabularnewline}{\\}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{position,fancyhdr}
 \setlength\parindent{0.5cm}
 
 \usepackage{babel}
 \makeatother
 \begin{document}
 
-\section{Range encoding}
+\section{Algoritmi de compresie}
+
+
+\subsection{Range encoding}
+
+Ideea de {}``range encoding'' a apãrut prima datã în lucrarea lui
+G.N.N Martin\cite{key-rangecoder} .
 
 Spunând cã lãþimea unui mediu de stocare este \emph{s}, sau \emph{d}
 cifre din baza \emph{b}, înþelegem cã poate lua una din cele $s$
-valori, sau una din cele $b^{d}$ valori distince.
+valori, sau una din cele $b^{d}$ valori distincte.
 
 Dacã stocãm o literã, ºi restrângem mediul de stocare la una din $t$
 valori distincte, atunci lãþimea codãrii caracterului este $s/t$,
@@ -44,9 +50,9 @@ lãþimea 256 este {[}240, 250), atunci lãþimea lilterei este 25.6,
 Dacã un domeniu are forma $\left[B,T\right)$, atunci îl putem combina
 cu un rest prin aritmeticã simplã. Dacã dorim sã stocãm $i\in\left[0,T-B\right)$,
 ca rest pentru $\left[B,T\right)$, atunci valoarea stocatã este $B+i$
-; sau dacã $\left[i,j\right)\subseteq\left[0,T-B\right)$trebuie stocat
-ca rest parþial pentru $\left[B,T\right)$, atunci valoarea stocatã
-este constrâns la $\left[B+i,B+j\right)$.
+; sau dacã $\left[i,j\right)\subseteq\left[0,T-B\right)$ trebuie
+stocat ca rest parþial pentru $\left[B,T\right)$, atunci valoarea
+stocatã este constrâns la $\left[B+i,B+j\right)$.
 
 Fie $f(a)$ probabilitatea ca litera 'a' sã aparã în orice context
 dat. Presupunem cã alfabetul este ordonat, ºi definim $F(a)$ ca fiind
@@ -72,7 +78,7 @@ Dacã $s.fa\geq1$, atunci fiecare literã se poate coda, ºi decoda
 fãrã echivoc.
 
 
-\subsection{Decodificare}
+\subsubsection{Decodificare}
 
 O literã \emph{'a'}, împreunã cu restul sãu este codificat (într-un
 spaþiu de stocare de lãþime \emph{s}) ca $i\subseteq\left[\left\lfloor sFa\right\rfloor ,\left\lfloor s(Fa+fa)\right\rfloor \right]$.
@@ -91,7 +97,7 @@ Dupã ce am dedus \emph{'a'}, restul este $i-\left\lfloor sFa\right\rfloor $,
 ºi a fost codat cu o lãþime de $\left\lfloor s(Fa+fa)\right\rfloor -\left\lfloor sFa\right\rfloor $.
 
 
-\subsection{Algoritmul de codificare/decodificare}
+\subsubsection{Algoritmul de codificare/decodificare}
 
 Dacã o literã \emph{'a'} se codificã ca $\left[B,T\right)$, lãþimea
 rãmasã este $T-B$. Dacã acesta e prea mic, îl putem extinde prin
@@ -126,7 +132,7 @@ S_{i} & = & \sum_{j=1}^{i}k_{j}\\
 
 
 
-\subsection{Exemplu de codificare}
+\subsubsection{Exemplu de codificare}
 
 Codificarea mesajului: \emph{{}``NMLNNNKKNML''}\smallskip{}
 
@@ -155,21 +161,21 @@ Lãþime rãmasã%
 \hline 
 1000&
 N&
-$[580, 1000)$&
+$[580,1000)$&
 N&
-$[580, 1000)$&
+$[580,1000)$&
 420\tabularnewline
 \hline 
 420&
 M&
-$[130, 243)$&
+$[130,243)$&
 NM&
 $[710,823)$&
 113\tabularnewline
 \hline 
 113&
 L&
-$[011, 035)$&
+$[011,035)$&
 NML&
 $[721,745)$&
 24\tabularnewline
@@ -183,7 +189,7 @@ $[7349,\ldots450)$&
 \hline 
 101&
 N&
-$[058, 101)$&
+$[058,101)$&
 NMLNN&
 $[7407,\ldots450)$&
 43\tabularnewline
@@ -197,35 +203,35 @@ $[74319,\ldots500)$&
 \hline 
 181&
 K&
-$[000, 018)$&
+$[000,018)$&
 NMLNNNK&
 $[74319,\ldots337)$&
 18\tabularnewline
 \hline 
 180&
 K&
-$[000, 018)$&
+$[000,018)$&
 NMLNNNKK&
 $[743190,\ldots208)$&
 18\tabularnewline
 \hline 
 180&
 N&
-$[104, 180)$&
+$[104,180)$&
 NMLNNNKKN&
 $[7432004,\ldots080)$&
 76\tabularnewline
 \hline 
 760&
 M&
-$[235, 440)$&
+$[235,440)$&
 NMLNNNKKNM&
 $[73420275,\ldots480)$&
 205\tabularnewline
 \hline 
 205&
 L&
-$[020, 063)$&
+$[020,063)$&
 NMLNNNKKNML&
 $[73420295,\ldots338)$&
 43\tabularnewline
@@ -239,7 +245,7 @@ Codul complet trebuie ales cu 7 cifre semnificative (din: $[73420295,73420338)$)
 de ex: 7432031.
 
 
-\subsection{Implementare algoritm}
+\subsubsection{Implementare algoritm}
 
 Se observã cã în cazul unui domeniu existã 3 zone distincte:
 
@@ -301,20 +307,456 @@ Ex: \[
 
 Prin acesta risipim cel mult 1 bit.
 
+
+\subsection{Modelare statisticã}
+
+
+\subsubsection{Modelare statisticã staticã}
+
+Una din metodele de determinare a probabilitatãþii de apariþie a unui
+simbol este modelarea contextualã finitã \cite{key-ari-statistical}.
+Acesta se bazeazã pe ideea cã se calculeazã probabilitãþile pentr
+un simbol pe baza contextului în care apare. \emph{Contextul} reprezintã
+simbolii deja întãlniþi. \emph{Ordinul} modelului se referã la numãrul
+de simboluri precedente care alcãtuiesc contextul.
+
+Cel mai simplu model cu context finit este un model de ordinul 0.
+În acest caz probabilitãþile unui simbol sunt independente. Pentru
+implementare este necesar doar un tabel cu frecvenþa de apariþie a
+simbolurilor.
+
+Pentru un model de ordinul 1 avem nevoie de 256 asemenea tabele, pentru
+cã trebuie sã avem contori separaþi pentru fiecare context posibil.
+Pentru un model de ordinul 2 avem nevoie de 65536 tabele, º.a.m.d.
+
+O metodã de implementare este de a face 2 parcurgeri asupra datelor:
+una pentru a determina frecvenþa de apariþie, ºi încã una pentru codificarea
+simbolurilor (folosind un codificator aritmetic, sau un range-encoder).
+
+
+\subsubsection{Modelare statisticã adaptivã}
+
+Pentru modele de ordinul > 1, spaþiul ocupat de modelul statistic
+devine foarte mare, în comparaþie cu datele de intrare (ºi în multe
+situaþii le depãºeºte).
+
+Pentru a înlãtura acest dezavantaj se evitã stocarea modelului. Dar
+ºi decodificatorul trebuie sã cunoascã modelul, ºi acesta nefiind
+stocat împreunã cu datele comprimate, înseamnã cã decodificatorul
+trebuie sã-l construiascã pas-cu-pas. Acesta se numeºte modelare adaptivã.
+
+În acest caz algoritmii de compresie ºi decompresie pornesc cu acelaºi
+model, codificã simbolul cu modelul curent, ºi dupã aceea reîmprospãteazã
+modelul cu noul simbol. Astfel modelul curent se bazeazã pe caracterele
+întâlnite deja, cunoscute atât de cãtre programul de compresie, cât
+ºi de cãtre cel de decompresie.
+
+
+\subsection{Compresie folosind coduri distanþã-lungime}
+
+În specificaþia formatului \noun{deflate} \cite{key-deflatespec}
+(format folosit de Zip) se utilizeazã coduri distanþã-lungime. O pereche
+<lungime, distanþã> are urmãtoarea semnificaþie: se copiazã incepând
+de la \emph{<poziþia curentã> - <distanþã>} la ieºire \emph{<lungime>}
+octeþi.
+
+De observat, cã \emph{<lungime>} poate fi mai mare decât \emph{<distanþã>}.
+Exemplu: \emph{ABCDX<8,1>}, înseamnã: \emph{ABCDXXXXXXXXX}.
+
+Pentru stocarea acestor coduri, în cazul formatului \emph{DEFLATE}
+se extinde alfabetul de 256 coduri, cu încã 30 coduri. Codul 256 marcheazã
+sfârºitul unui bloc.
+
+Lungimile se reprezintã cu codurile 257-285, împreunã cu eventualele
+biþi extra, vezi tabela\vref{tab:coduri-pentru-lungime}.
+
+\begin{itemize}
+\item %
+\begin{table}[h]
+\begin{tabular}{|c|c|c||c|c|c||c|c|c|}
+\hline 
+Cod&
+Biþi&
+Lungime&
+Cod&
+Biþi&
+Lungime&
+Cod&
+Biþi&
+Lungime\tabularnewline
+\hline
+\hline 
+257&
+0&
+3&
+267&
+1&
+15,16&
+277&
+4&
+67-82\tabularnewline
+\hline 
+258&
+0&
+4&
+268&
+1&
+17,18&
+278&
+4&
+83-98\tabularnewline
+\hline 
+259&
+0&
+5&
+269&
+2&
+19-22&
+279&
+4&
+99-114\tabularnewline
+\hline 
+260&
+0&
+6&
+270&
+2&
+23-26&
+280&
+4&
+115-130\tabularnewline
+\hline 
+261&
+0&
+7&
+271&
+2&
+27-30&
+281&
+5&
+131-162\tabularnewline
+\hline 
+262&
+0&
+8&
+272&
+2&
+31-34&
+282&
+5&
+163-194\tabularnewline
+\hline 
+263&
+0&
+9&
+273&
+3&
+35-42&
+283&
+5&
+195-226\tabularnewline
+\hline 
+264&
+0&
+10&
+274&
+3&
+43-50&
+284&
+5&
+227-257\tabularnewline
+\hline 
+265&
+1&
+11,12&
+275&
+3&
+51-58&
+285&
+0&
+258\tabularnewline
+\hline 
+266&
+1&
+13,14&
+276&
+3&
+59-66&
+&
+&
+\tabularnewline
+\hline
+\end{tabular}
+
+
+\caption{\label{tab:coduri-pentru-lungime}coduri pentru lungime}
+\end{table}
+
+\end{itemize}
+Aceste coduri se genereazã de obicei prin aplicarea algoritmului LZ77
+(Lempel-Ziv 1977\cite{key-lz77}).
+
+
+\section{Structuri de date folosite}
+
+
+\subsection{Arbori digitali {}``expanse-based'': arbori Judy}
+
+Arborii Judy au fost inventaþi de cãtre Doug Baskins\cite{key-doug-10m-judy},
+ºi implementaþi împreunã cu Alan Silverstein\cite{key-judymanual}
+la Hewlett Packard. Ulterior algoritmul, ºi programul au fost fãcute
+publice.
+
+Un arbore Judy este mai rapid, ºi utilizeazã mai puþinã memorie decât
+alte forme de arbori, cum ar fi: arbori binari, AVL, arbori B, skip-list.
+Când este folosit ca ºi înlocuitor pentru algoritmi de dispersie,
+este în general mai rapid pentru toate populaþiile.
+
+Judy fiind proiectat ca ºi un vector nelimitat, dimensiunea unui vector
+Judy nu este prealocat, ci creºte, ºi descreºte dinamic cu populaþia
+vectorului.
+
+Judy combinã scalabilitatea cu uºurinþa în utilizare. API-ul Judy
+este accesat prin operaþii simple de inserare, regãsire, ºi ºtergere.
+Configurare, ºi tuning nu sunt necesare, ºi de fapt nici posibile
+pentru Judy. În plus sortarea, cãutarea, numãrarea, ºi accesul secvenþial
+sunt incluse în Judy.
+
+Judy poate fi folosit când este nevoie de vectori de mãrime dinamicã,
+vectori asociativi. De asemenea Judy poate înlocui multe structuri
+de date comune, cum ar fi: vectori, vectori sparse, tabele de dispersie,
+arbori B, arbori binari, liste liniare, skiplists, algoritmit de cãutare
+ºi sortare, funcþii de numãrare.
+
+O umplere a liniei cache (CPU) înseamnã timp adiþional pentru citire
+din RAM, când un cuvânt nu este gãsit în cache. În calculatoarele
+actuale acest timp este în zona 50..2000 instrucþiuni. Deci o umplere
+a liniei cache trebuie evitatã când 50 sau mai puþine instrucþiuni
+pot face acelaºi lucru.
+
+Câteva motive pentru care Judy este mai bun decât arborii binary,
+arbori B, ºi skiplists:
+
+\begin{itemize}
+\item Judy nu face compromisuri între simplitate ºi performanþã/spaþiu (doar
+API-ul se pãstreazã simplu)
+\item Criteriul principal este: Judy e proiectat ca sã evite umplerile de
+linii cache, când e posibil 
+\item Un arbore B necesitã o cãutare a fiecãrui nod, rezultând în mai multe
+umpleri de linii cache
+\item Un arbore binar are mai multe nivele (\textasciitilde{}8x), rezultând
+în mai multe umpleri de linii cache
+\item Un skip-list este aproximativ echivalent cu un arbore de grad 4, rezultând
+în mai multe umpleri de linii cache
+\item un arbore digital pe bazã de întindere (a cãrei variantã este Judy)
+nu necesitã niciodatã reechilibrãri la creºterea arborelui
+\item o porþiune a cheii este utilizat pentru subdivizarea unei întinderi
+în sub-arbori. Doar restul cheii este trebuie sã existe în sub-arbori,
+rezultând în compresia cheilor.
+\end{itemize}
+
+\subsubsection{JudySL\label{sub:JudySL}}
+
+JudySL este un vector asociativ, implementat folosing JudyL, în felul
+urmãtor: se împarte un ºir (terminat prin null), într-o secvenþã de
+cuvinte de 32/64 biþi lungime, ºi se construieºte un arbore de vectori
+Judy, cu acele cuvinte ca ºi indexi, reprezentând un prefix unic pentru
+fiecare ºir. Fiecare nod terminal este un pointer la sufixul unic
+al ºirului (un ºir se poate termina ºi fãrã nod terminal).
+
+
+\section{Contribuþii proprii la implementare de algoritmi de compresie}
+
+
+\subsection{Coduri lungime-distanþã}
+
+În specificaþia \emph{DEFLATE} se folosesc 28 de coduri pentru coduri
+de lungime, dar acesta se poate extinde în caz de nevoie.
+
+Se observã urmãtoarele la tabelul \eqref{tab:coduri-pentru-lungime}:
+
+\begin{itemize}
+\item primii 8 coduri au 0 extra biþi
+\item pentru urmãtoarele 4 coduri avem \emph{1} bit extra
+\item pentru urmãtoarele 4 coduri avem \emph{2} biþi extra
+\item ...
+\item pentru urmãtoarele 4 coduri avem \emph{i} biþi extra
+\end{itemize}
+Acesta conduce la urmãtorul algoritm de generare a tabelului:
+
+\begin{itemize}
+\item primele 8 coduri, au 0 biþi extra
+\item $extra\_bits_{i}=\left\lfloor (i-8)/4\right\rfloor $
+\item lungimile corespunzãtoare unui cod $\left[start_{i},end_{i}\right]$:
+
+\begin{itemize}
+\item $start_{i}=end_{i-1}+1$
+\item $end_{i}=start+2^{extra\_bits_{i}}-1$
+\end{itemize}
+\end{itemize}
+Acest algoritm l-am implementat în mk\_codes.c (\eqref{sub:mk_codes.c}).
+
+
+\subsection{Implementarea algoritmului LZ77 folosind arbori Judy}
+
+Pentru comprimarea datelor folosind coduri distanþã-lungime, elementul
+central este gãsirea unei potriviri, de preferat a unei potriviri
+cât mai lungi.
+
+Structura de date numitã JudySL (secþiunea \eqref{sub:JudySL} ) este
+foarte asemãnãtoare cu ce avem nevoie: asocieazã unui ºir o valoare.
+
+În cazul nostru valoarea este poziþia/distanþa, iar ºirul sunt chiar
+datele din {}``sliding windowul'' algoritmului LZ77. Singura problemã
+este cã putem avea ºi caracterul nul (0) în date, deci nu putem folosi
+JudySL ca atare.
+
+Pe baza descrierii algoritmului JudySL din secþiunea \eqref{sub:JudySL}
+am realizat o structurã de date, implementând urmãtoarii operatori:
+
+- judy\_insert\_bytearray(judyarray, data, length, position)
+
+- judy\_remove\_bytearray(judyarray, data, length, position)
+
+- judy\_search\_longestmatch(judyarray, data, length, \&distance,
+\&position)
+
+Implementarea se aflã în lz\_coder.c\eqref{sub:lz_coder.c}.
+
 \begin{thebibliography}{1}
-\bibitem{key-27}G.N.N Martin - {}``Range encoding: an algorithm
+\bibitem{key-rangecoder}G.N.N Martin - {}``Range encoding: an algorithm
 for removing redundancy from a digitised message.'', Video \& Data
 Recording Conference, Southampton, 1979, http://www.compressconsult.com/rangecoder/rngcod.pdf.gz
 
-\bibitem{key-2} Alan Silverstein - {}``Judy IV Shop Manual'', HP
-invent, August 2002, http://judy.sourceforge.net/doc/shop\_interm.pdf
+\bibitem{key-judymanual} Alan Silverstein - {}``Judy IV Shop Manual'',
+Hewlett-Packard, August 2002, http://judy.sourceforge.net/doc/shop\_interm.pdf
 
-\bibitem{key-3} Peter Deutsch - {}``DEFLATE Compressed Data Format
-Specification version 1.3 (RFC 1951)'', May 1996 - ftp://ftp.nic.it/rfc/rfc1951.pdf
+\bibitem{key-doug-10m-judy} Doug Baskins - {}``A 10-minute description
+of how Judy arrays work and why they are so fast'', http://judy.sourceforge.net/doc/10minutes.htm,
+July 2002
 
-\bibitem{key-26}Matthew V. Mahoney - {}``Adaptive Weighing of Context
+\bibitem{judysl} {*} - http://judy.sourceforge.net/examples/judysl.pdf
+
+\bibitem{key-deflatespec} Peter Deutsch - {}``DEFLATE Compressed
+Data Format Specification version 1.3 (RFC 1951)'', May 1996 - ftp://ftp.nic.it/rfc/rfc1951.pdf
+
+\bibitem{key-ari-statistical} Mark Nelson - {}``Arithmetic Coding
++ Statistical Modeling = Data Compression'', Dr. Dobb's Journal,
+February 1991, http://www.dogma.net/markn/articles/arith/part2.htm
+
+\bibitem{key-ari-rev} Moffat, Neal, and Witten - \char`\"{}Arithmetic
+Coding Revisited\char`\"{}, ACM Transactions on Information Systems,
+July 1998, 16(3):256-294
+
+\bibitem{key-paq}Matthew V. Mahoney - {}``Adaptive Weighing of Context
 Models for Lossless Data Compression'', Florida Institute of Technology
 CS Dept, Technical Report CS-2005-16, https://www.cs.fit.edu/Projects/tech\_reports/cs-2005-16.pdf
+
+\bibitem{key-lz77}Ziv J., Lempel A. - {}``A Universal Algorithm
+for Sequential Data Compression'', IEEE Transactions on Information
+Theory, Vol. 23, No. 3, pp. 337-343. http://www.cs.duke.edu/courses/spring03/cps296.5/papers/ziv\_lempel\_1977\_universal\_algorithm.pdf
+
 \end{thebibliography}
+\appendix
+
+\section{Programul singularity-compress}
+
+Se gãseºte ºi la http://code.google.com/p/singularity-compress/ ,
+http://singularity-compress.googlecode.com/svn/trunk/.
+
+\newpage{}
+
+
+\subsection{mk\_codes.c\label{sub:mk_codes.c}}
+
+\input{mk_codes.tex}
+
+
+\subsection{lz\_coder.c\label{sub:lz_coder.c}}
+
+\input{lz_coder.tex}
+
+
+\subsection{lz\_coder.h\label{sub:lz_coder.h}}
+
+\input{lz_coder_h.tex}
+
+
+\subsection{range\_encoder.h\label{sub:range_encoder.h}}
+
+\input{range_encoder_h.tex}
+
+
+\subsection{range\_decod.h\label{sub:range_decod.h}}
+
+\input{range_decod_h.tex}
+
+
+\subsection{codes.h\label{sub:codes.h}}
+
+\input{codes_h.tex}
+
+
+\subsection{code\_tables.h\label{sub:code_tables.h}}
+
+\input{code_tables_h.tex}
+
+
+\subsection{model.h\label{sub:model.h}}
+
+\input{model_h.tex}
+
+
+\subsection{rangecod.h\label{sub:rangecod.h}}
+
+\input{rangecod_h.tex}
+
+
+\subsection{simple\_c.c\label{sub:simple_c.c}}
+
+\input{simple_c.tex}
+
+
+
+\subsection{range\_decod.h\label{sub:range_decod.h}}
+
+\input{range_decod_h.tex}
+
+
+
+\subsection{simple\_d.c\label{sub:simple_d.c}}
+
+\input{simple_d.tex}
+
+
+
+\subsection{unpacker\_main.c\label{sub:unpacker_main.c}}
+
+\input{unpacker_main.tex}
+
+
+
+\subsection{sfx.c\label{sub:sfx.c}}
+
+\input{sfx_c.tex}
+
+
+
+\subsection{unpack.h\label{sub:unpack.h}}
+
+\input{unpack_h.tex}
+
+
+
+
+\subsection{unpack.c\label{sub:unpack.c}}
+
+\input{unpack_c.tex}
+
+
+
+\subsection{Makefile.sfx\label{sub:Makefile.sfx}}
+
+\input{Makefile.tex}
 
 \end{document}

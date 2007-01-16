@@ -1,0 +1,986 @@
+% \iffalse
+%%
+%% File `position.dtx'.
+%%
+%% Copyright (C) 1997 - 2000 Michael Plugge <m.plugge@fh-mannheim.de>
+%% All rights reserved.
+%%
+%% Please send error reports and suggestions for improvements to:
+%%
+%%                          Michael Plugge
+%%                          Neustadter Str. 132
+%%                          D-67360 Lingenfeld
+%%                          Germany
+%%               Internet:  <m.plugge@fh-mannheim.de>
+%%
+% \fi
+
+% \CheckSum{0}
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%
+% \iffalse
+%<*driver>
+\documentclass{ltxdoc}
+\usepackage{a4wide,fancyhdr}
+\pagestyle{fancy}
+\newenvironment{dsc}{\begin{list}{}{\leftmargin7em\labelwidth5em
+   \itemindent0em\itemsep0pt}}{\end{list}}
+\newenvironment{dsca}{\begin{list}{}{\leftmargin7em\labelwidth5em
+   \itemindent0em\itemsep0pt\parsep0pt}}{\end{list}}
+\newenvironment{dscb}{\begin{list}{}{\leftmargin4em\labelwidth3em
+   \itemindent0em\itemsep0pt\parsep0pt}}{\end{list}}
+\gdef\itx#1{\item[\bs\tt #1\hfill]}
+\gdef\itm#1{\item[\tt #1\hfill]}
+\gdef\<#1>{$<$#1$>$}
+\gdef\bs{$\backslash$}
+\begin{document}
+   \DocInput{position.dtx}
+\end{document}
+%</driver>
+% \fi
+% \pagenumbering{roman}
+% \tableofcontents
+% \pagenumbering{arabic}
+% \title{The position package and tiny\_c2l: \\[-.5ex]First Attempt in vertical
+%        Alignment and ``smart'' Line Breaking}
+% \author{Michael Plugge}
+% \date{2000/02/25}
+% 
+% \maketitle
+% 
+% \begin{abstract}
+% This package provides a set of macros that can be used for vertical
+% alignment of code and ``smart'' (context-sensitive) linebreaking. It is an
+% first attempt to solve the problems concerning whitespace and linebreaking
+% in prettyprinting. A small \{C/C++/Java\}$\rightarrow$\LaTeX{} converter
+% (|tiny_c2l|) is included as sample application to show how the macros can
+% be used.
+% \end{abstract}
+% 
+% \section{Introduction}
+% Position.sty and |tiny_c2l| --- Makros for vertical alignment and ``smart''
+% line breaking.
+% 
+% This is a set of experimental macros, which I hacked for use in the cvt2tx
+% package.  The macros allow a vertical alignment using the roman(!) font.
+% The basic idea is to have a grid of ``should be'' positions on the paper,
+% for example .5em per (input) character. If two or more blanks or a tab
+% character are found in the input text, the corresponding position is used
+% for output; if there is only one blank, it is stretched (or shrinked) to
+% get near this ``ideal'' position. The actual value for one blank is
+% \mbox{0.25em \dots{} 0.55em}.
+% 
+% Another macro (|\mpout|) can be used to generate ``leaders'' between
+% specific positions in the input text. You specify the (ASCII/grid) start
+% position, the end position and the fill character; then the corresponding
+% range in the .dvi fileis filled using this pattern. This macro is quite
+% useful for block comments or long horizontal structures.
+% 
+% A small \mbox{\{C/C++/Java\} $\rightarrow$ \LaTeX{}} converter (|tiny_c2l|)
+% is also included as example how to use the macros. Only a few very basic
+% things are implemented: recognition of keywords, comments, strings etc. No
+% reformatting of text is done, lex/yacc files are not recognized (this may
+% lead to erors if a pattern contains a single \texttt{"} without prepended
+% backslash!)\dots{} The first version of |tiny_c2l| was just a quick \& dirty
+% hack to get some testfiles for the macros. Later I added some features in
+% order to build a tiny but usable converter.
+% 
+% The macros are intended to be used later in another package (|cvt2ltx|). The
+% converters of this family are much more powerful and and have less
+% restrictions. Unfortunately I didn't get the time to do some work on these,
+% too. The main reason for making public this test software is to get
+% opinions and critics as well as additions of personal needs. The more
+% feedback I will get, the faster |cvt2ltx| and |tiny_c2l| will come to a more
+% useful state.
+% 
+% The documentation is quite poor; if I get the time, it will be improved.
+% Comments, bug reports/fixes or extensions are welcome.
+% 
+% Copyright \copyright{} 1997,1998 Michael Plugge \<m.plugge@fh-mannheim.de>
+% 
+% \subsection{The Problem}
+% When one starts writing a prettyprinter that uses \LaTeX{} for formatting,
+% some tough nuts are to crack. Two of these are handling of white space and
+% linebreaking. AFAIK, these problems are currently not solved in a
+% satisfactory way. 
+% 
+% One common way to handle blanks and tabs is to convert tab characters to an
+% appropriate number of spaces and then convert each space to a fixed amount
+% of space (for example 0.5em). If a proportional font is used to document
+% the program source (this gives IMHO the fanciest result), vertical
+% structures as assignment blocks, block comments, vertical alignment of Lex
+% actions etc. are lost because the characters have different width. Some
+% converters try to handle this problem by using a non-proportional font
+% (typewriter); but this seems to be not a satisfactory way (it is not often
+% used, too).
+% 
+% The other problem is that of overlong source lines. For this problem
+% currently three different approaches are used:
+% 
+% \begin{itemize}
+% \item The first way is to do no linebreaking at all; the user has to be
+%    aware that lines are not too long; if not, one simply gets overful \TeX{}
+%    boxes.
+% 
+%    This way is ok if one uses the prettyprinter mainly for own programs;
+%    but it is bad if you have to print foreign programs with many overlong
+%    lines.
+% 
+% \item The second way uses \LaTeX{} for linebreaking, without additional
+%    environments etc. This is a simple solution, but the result does not
+%    satisfy: the start of the continuation lines goes back to the line
+%    begin. So all indentation is messes up.
+% 
+% \item The third way is a little more elaborated: in this case linebreaking
+%    does not go back to the begin of the line, but rather to the current
+%    indentation level (with a little additional offset to denote the
+%    continuation line). This method was used in |cvt2ltx|; it gives generally
+%    better results, but doesn't satisfy in all situations too.
+% 
+%    If this method is used for strings, the (inserted) blanks at line begin
+%    are not part of the real string; but they would be included by a
+%    compiler.
+% 
+%    Even far worse is the case of C++ comments (//): these end naturally at
+%    the end of a line. The text from the continuation lines would be
+%    interpreted by a compiler (from syntax point of view) as code, not as
+%    comment.
+% \end{itemize}
+% 
+% \subsection{Line breaking in the tiny\_c2l/position package}
+% The |tiny_c2l|/position package has a very flexible system for line
+% breaking: it can output some text before the actual line break, change the
+% value of indentation and output some text at the begin of the new
+% (continuation) line. In |tiny_c2l|, these features are used to generate a
+% context-sensitive way of linebreaking:
+% 
+% \begin{itemize}
+% \item For normal code the current indentation is used with a little
+%    additional offset (.5 em) to mark continuation lines.
+% 
+% \item For preprocessor lines, `{\tt \symbol{'040}}\bs' is appended to the
+%    end of the line; the continuation lines are indented slightly more than
+%    normal code lines (1.5 em).
+% 
+% \item For strings, a backslash is appended at the end of the line; the
+%    continuation lines get \emph{no} indentation (they go back to the start
+%    of the new line).
+% 
+% \item C comments (starting with /$\ast$) get a `$\ast$' at the start of
+%    each  continuation line. Indentation is done such that the `$\ast$'
+%    characters are vertically aligned (even if the comment start is shifted
+%    right due to wide characters as shown in testfile.l).
+% 
+% \item C++ comments (starting with //) get `//' at line begin. The `//'
+%    characters of the continuation lines are vertically aligned with the
+%    first `//' (as in the case of C comments)
+% \end{itemize}
+% 
+% Even though some problems remain, this way of line breaking gives much more
+% satisfactory results than the other three ways.
+% 
+% \subsection{Handling of white space in the tiny\_c2l/position package}
+% In the |tiny_c2l|/position package, white space is handled quite different
+% than in other converters. The goal is to get an output that is (concerning
+% vertical structures) mostly similar to the ASCII input. To approach this
+% goal the output sheed is divided into several (equidistant) positions which
+% are directly mapped to the ``ASCII positions'' of the source file In the
+% current version, the ``grid width'' is 0.5em; it is  determined by the
+% macro |\ind|). All text must be output using one of three macros:
+% |\jmpo{position}{txt}|, |\njo{position}{text}|, |\xnjo{cnt}{position}{txt}|
+% or |mpout\{pos1\}\{pos2\}\{pattern\}|.
+% 
+% \begin{dsc}
+% 
+% \itx{jmpo\{pos\}\{txt\}:} jump to the position which is specified in the
+%    first parameter, and then output the text from the second parameter.
+%    This macro does the main work for vertical alignment; it is used if in
+%    the source text multiple blanks or (at least one) tab character is
+%    found. (Depending on the current output position, it may jump a long way
+%    concerned to the ASCII file.)
+% 
+% \itx{njo\{pos\}\{txt\}:} nojump, output: This macro is
+%    used if a single blank is found in the source text. In this case, the
+%    output does not jump to the ``grid'' position, but rather tries to reach
+%    this position using some glue (0.25em to 0.55em). If the
+%    grid position is too far right, 0.55em is used; if the current
+%    position is already more right than the grid position, 0.25em is
+%    used.
+% 
+% \itx{xnjo\{cnt\}\{pos\}\{txt\}:} This macro is similar to |\njo|, with a
+%    little difference: the glue is 0.3em to 0.45em, and it
+%    can be used for multiple blanks (the actual count is given in the first
+%    parameter). This macro is used for ``fill comments'' in |tiny_c2l| to
+%    avoid |\jmpo| in this context; it gives a relative constant blank width
+%    in this case.
+% 
+% \itx{mpout\{p1\}\{p2\}\{c\}\{k\}:} This macro is used to fill the space
+%    between the positions |p1| and |p2| with the character(s) given in |c|.
+%    The parameter |\{k\}| specifies an additional kern (positive or
+%    negative) that is inserted after each pattern (this is used for example
+%    for $<$ or $>$).
+% 
+% \end{dsc}
+% 
+% These macros keep track of the current position in the .dvi file. If the
+% current position is already larger than the requested grid position, only a
+% small space (0.25em) is inserted in all cases. If direct output
+% would be used (without these macros), the position macros cannot work
+% properly because the internal variables contain wrong position values. 
+% 
+% \section{tiny\_c2l Mini Manual}
+% |tiny_c2l| is a little converter that converts C, C++ or Java source code
+% to \LaTeX{}. The first version of |tiny_c2l| was just a quick hack to
+% generate some testfiles for the position macros. Now it is slightly
+% extended to work as a ``real'' converter, although it has many limitations.
+% It can be used either as a simple converter, as starting point for an own
+% converter project or just as example how to use the macros of the position
+% package.
+% 
+% \subsection{Invocation}
+% |tiny_c2l| accepts two arguments and a number of options. The first
+% argument is the input file name, the second argument is the output file
+% name. Both may be omitted: if no output name is given, stdout is used
+% instead; if no input name is given, stdin is used for input. If you want to
+% use stdin for input, you can also use the -o$<$name$>$ option to specify an
+% output file name.
+% 
+% \subsection{Options}
+% |tiny_c2l| has a number of options; these can be placed anywhere in the
+% command line (before, between or after the filenames). If multiple values
+% are given for a specific option, the only last value is used.
+% 
+% All options accept only a short form. If an option accepts parameters, no
+% blank must be inserted between the option character and the option
+% parameter. If an option contains blanks (for example a header or footer
+% text) it must be quoted.
+% 
+% Valid options are:
+% 
+% \begin{dsca}
+% \itm{-h<position><txt>}
+% \itm{-f<position><txt>} These two options control the header (-h) and
+%    footer (-f) text. |<position>| is a single character that specifies the
+%    requested position: l~(left), c~(center) or r~(right). |<txt>| is the
+%    text that will be output at this position.
+% 
+%    For the |<txt>| parameter, some escape sequences are defined for
+%    inclusion of file name and date/time:
+%    \begin{dscb}
+%          \itm{\%f} input file name        
+%          \itm{\%p} page number            
+%          \itm{\%t} time (HH:MM)           
+%          \itm{\%D} date (DD-MMM-YYYY)     
+%          \itm{\%h} hour                   
+%          \itm{\%M} minute                 
+%          \itm{\%d} day of month           
+%          \itm{\%m} month (numeric value)
+%          \itm{\%n} (english) name of month (full form)
+%          \itm{\%s} (english) name of month (short form)
+%          \itm{\%N} (local) name of month (full form)
+%          \itm{\%S} (local) name of month (short form)
+%          \itm{\%y} year
+%          \itm{\%\%} the `\%' character itself
+%    \end{dscb}
+% 
+%    Usually these texts will contain some blanks; in this case they must be
+%    quoted. For example the standard center header would be written as
+%    \par\hspace*{2em}\mbox{\tt "-hcProduced from \%f on \%D \%t"}
+% \itm{-+} use C++ mode (with additional keywords and // comments)
+% \itm{-j} use Java mode (with additional keywords and // comments)
+% \itm{-t<cnt>} number of blanks per tab
+% \itm{-d} debug mode; the FLEX debug output is written to the file tiny\_c2l.dbg
+% \itm{-o<name>} specify output name (useful if stdin is used for input)
+% \itm{-?} show a short help screen
+% \end{dsca}
+% 
+% \subsection{Special Features}
+% \subsubsection{Embedded \LaTeX{} comments}
+% |tiny_c2l| provides two backdoors to include embedded \LaTeX{} comments:
+% ``append mode'' and ``verbatim mode''.
+% 
+% \begin{itemize} \item The ``append mode'' embedded \LaTeX{} is defined for
+%    C or C++ style comments. It starts with /$\ast$\bs{}a (resp. //\bs{}a) and
+%    ends with the comment end ($\ast$/ for C comments, line end for C++
+%    comments). The comment delimiters (in the standard form /$\ast$ or //)
+%    are written to the output file.
+% 
+%    Everything within these comments is copied directly to the output file,
+%    without any modifications. So you can include formulas (or even pictures
+%    ;-))) in the comment.
+% 
+% \item ``Verbatim mode'' embedded \LaTeX{} is defined only for C style
+%    comments. It is used to include global (\LaTeX{}) options or section
+%    commands as |\section|, |\subsection|, \dots{}, |\index| in the file; it
+%    could be used  also to generate a two-column listing of a part of the
+%    file.
+% 
+%    This mode is started with /$\ast$\bs{}v and ends with the comment end (at the
+%    first $\ast$/). The comment delimiters /$\ast$ and $\ast$/ are not
+%    written to the output file.
+% \end{itemize}
+% 
+% \subsubsection{``Fill'' Comments}
+% Fill comments are a special mode for of normal (multiline) comments in
+% which linebreaks are rearranged to fill the lines in the generated .dvi
+% file. Fill comments are started with /$\ast$\bs{}f (resp. //\bs{}f). For C style
+% comments each new line must have a leading `$\ast$'.
+% 
+% The linebreak, leading blanks, and (in C mode) the `$\ast$' and following
+% blanks are replacedby a single blank. So the whole comment appears in the
+% \LaTeX{} file as a single long line; this is broken by the |\njo| and |\xnjo|
+% macros. Blanks in fill comments are not handled by the |\jmpo| macro, but
+% rather by |\xnjo|. This macro uses reduced glue (the current range is from
+% 0.3em to 0.45em); for multiple blanks no jump to the grid
+% position is done, it inserts just more space. This is done because in fill
+% comments positioning makes no sense.
+% 
+% You can force a linebreak if you use a single @ character at the end of a
+% line. This character is not printed in the output file.
+% 
+% \subsubsection{Block comments}
+% Block comments start with /$\ast$\bs{}b and end with $\ast$/. They are used
+% mainly for procedure headers; they use some special formatting options:
+% 
+% \begin{itemize}
+% \item The used font is |\blockfont| (default: roman).
+% \item The `:' character is moved to the grid position even after a single
+%    blank.
+% \item If a single character is found at the end of the line, this is also
+%    moved to the grid position.
+% \end{itemize}
+% 
+% \subsubsection{Omitting source lines in the Output}
+% To omit a number of lines in the output, the command /$\ast$\bs{}o$<$cnt$>$$\ast$/ can be
+% used. It must appear on an own line (leading or trailing blanks are
+% allowed). \<cnt> is the number of lines to omit: for example, /$\ast$\bs{}o20$\ast$/
+% would omit the next 20 lines.
+% 
+% To omit a larger piece of code, the command /$\ast$\bs{}o+$\ast$/ and /$\ast$\bs{}o-$\ast$/ can be
+% used. Everything between the lines containing these commands is omitted;
+% instead a line is inserted which tells how many lines were skipped. If you
+% want to omit lines without the skip message, use the command /$\ast$\bs{}oq$\ast$/
+% (instead of /$\ast$\bs{}o+$\ast$/) or /$\ast$\bs{}o$<$cnt$>$q$\ast$/ (instead of /$\ast$\bs{}o$<$cnt$>$$\ast$/). These
+% commands suppress the skip message; they just skip the lines.
+% 
+% 
+% \subsubsection{Support for multiple File Projects}
+% The generated file contains some code to detect if it is used as standalone
+% file or if it is included from another file. All you have to do for this
+% feature is to include a line containing |\usepackage{position,fancyhdr}| in
+% the preamble of the wrapper file; then you may include (or input) one or
+% more files generated by |tiny_c2l|.
+% 
+% \subsubsection{\LaTeX~2.09/\LaTeXe\ Support}
+% The generated file automagically detects if \LaTeX{}~2.09 or \LaTeXe\ is used
+% by checking the |\documentclass| macro. Two preambles are provided; so you
+% can use the file with any \LaTeX{} version without trouble and without
+% changing to the slow compatibility mode of \LaTeXe.
+% 
+% \section{Future Enhancements}
+% \subsection{tiny\_c2l Converter:}
+% Many enhancements are possible for |tiny_c2l|. Some of these are:
+% 
+% \begin{itemize} 
+% \item Special support for Lex/Yacc files
+% \item Support for other programming languages
+% \item Integrated invocation of \LaTeX{}, xdvi, dvips and print (using a 
+%       command-line option)
+% \item Special (direct) support for multiple-file projects
+% \item Native VMS-CLI interface
+% \item Autogeneration of |\section|, |\subsection| and |\index| entries for all
+%       functions (and classes); autogenerate also a fileheader and (on
+%       request) a table of contents and index
+% \item Refinement of the linebreaking and alignment code (will be discussed in
+%       the next two sections)
+% \end{itemize}
+% 
+% Many of these features are implemented already in the |cvt2ltx| package.
+% If I get the time, I'll include them into |tiny_c2l| (or rewrite |cvt2ltx|
+% to include the |tiny_c2l| code).
+% 
+% \subsection{Line Breaking:}
+% Currently line breaking is done in a brute force way: the only check that
+% is done by the macros is if the line is too long if the current box is
+% added. If yes, the line is broken, if not, the box is just shipped out.
+% This approach leads sometimes to bad linebreaks: for example, it is
+% possible that a linebreak occurs directly after a ", or in the mid of a
+% |for(;;)| command (between the two `;'). 
+% 
+% A much better solution would be to have not only \emph{one} output box, but
+% rather 3 or~5, which are filled sequentially and are used as a \emph{fifo}
+% register. Each box should have an associated |\penalty| dependend on the
+% syntactical structure of the box and its position in the output. Each box
+% gets some additional |\penalty| if a new box is added to the list (and the
+% other boxes are shifted left by this). This reflects the decision that the
+% linebreak should appear at the rightmost position, if it is syntactically
+% ok. Linebreaking would be done at the position with the lowest |\penalty|
+% (which could be even the first box).
+% 
+% The actual values of |\penalty| would need some thorough studies. This
+% approach would yield a much more fancy way of linebreaking: linebreaks
+% would be done at ``good'' positions, not simply at the first position that
+% leads to an overful line (which is also usually the last possible position
+% for the linebreak).
+% 
+% \subsection{Vertical Alignment:}
+% Also in this area some refinements could be done; but they seem to be not
+% very simple:
+% 
+% In |tiny_c2l|, vertical alignment is done on a local point of view: only the
+% current environment is considered. It would be nice to extend the scope for
+% alignments to be consistent for a page (or even complete functions or the
+% whole file). 
+% 
+% One could look for the position of some special structures (for example
+% start position of comments, position of the `=' in assignments etc.) and to
+% keep a list of these positions in the last 100 lines (in the case of scope
+% of a page). The corresponding positions in the .dvi file should be
+% calculated too (either by \TeX{} or by using approximate values in C). If in
+% the selected range (100 lines back, in the current function or in the file)
+% two patterns have the same ASCII position, they should get also the same
+% .dvi position (which means, these structures get a position that must not be
+% a grid position, but could be shifted right also.
+% 
+% Implementing this feature would give a fine output without user
+% intervention, but it seems to be not trivial. It would require at least two
+% scanner passes; if the .dvi positions are calculated by \TeX{}, it would be
+% still more expensive in terms of processing time.
+% 
+% \section{Implementation}
+% \subsection{Annnouncement Message}
+% \DescribeMacro{announcement message}
+% First, we announce the macro package.
+%    \begin{macrocode}
+%<*package>
+\ifx\documentclass\undefined %this package may be used also with LaTeX 2.09 ;-)))
+ \message{position.sty  1.4.0\space <2000/02/25>}
+\else
+ \NeedsTeXFormat{LaTeX2e}
+ \ProvidesPackage{position}[2000/02/25\space 1.4.0]
+ \typeout{Package: position 1.4.0\space <2000/02/25>}
+\fi
+%    \end{macrocode}
+% \subsection{\LaTeX{} Format and standalone/include file check}
+% \DescribeMacro{file prolog}
+% Now comes a tricky part: we want to check (without need of user input)
+% if this file is used with \LaTeXe or \LaTeX~2.09, and also if it is used
+% as standalone file or as an include file. This task is done by the macro
+% |\getformat| and the conditional |\ifmfiles| in the following way:
+% 
+% The prolog of a generated file looks like this (explanation follows):
+% 
+% \begin{verbatim}
+% \ifx\getformat\undefined
+%  \newcount\getformat\getformat0
+% \else
+%  \mfilestrue\getformat3
+% \fi
+% \ifx\documentclass\undefined\advance\getformat1\fi
+% 
+% \ifcase\getformat
+%  \documentclass[10pt]{article}
+%  \usepackage{a4wide,position,fancyhdr}
+%  \usepackage[latin1]{inputenc}
+% \or
+%  \documentstyle[a4wide,position,fancyhdr]{article}
+% \else\fi % multiple file input: don't load format
+% \end{verbatim}
+% 
+% The first line checks, if |\getformat| is already defined; if yes, we can
+% be sure that the file was included (in this case, |\getformat| was defined
+% in position.sty). The conditional |\ifmfiles| is set to true
+% (|\mfilestrue|) and |\getformat| is set to 3. If |\getformat| was not yet
+% defined, we are in single file mode: |\getformat| is declared and
+% initialized with~0.
+% 
+% The next line checks the used format file: if |\documentclass| is
+% undefined, we are in \LaTeX~2.09, otherwise we use \LaTeXe. 
+% 
+% Now we have all informations available in the counter register
+% |\getformat|:
+% 
+% \begin{itemize}
+% \item If |\getformat| is 0, we are in single file mode, using \LaTeX~2.09
+% \item If |\getformat| is 1, we are in single file mode, using\LaTeXe
+% \item If |\getformat| is 3, we are in multiple file mode, using\LaTeX~2.09
+% \item If |\getformat| is 4, we are in multiple file mode, using\LaTeXe
+% \end{itemize}
+% 
+% In multiple file mode, the conditional |\ifmfiles| is also set to true
+% (this conditional is used at the end of the file). Now comes a
+% multiway-switch (|\ifcase\getformat|) with the |\documentclass|
+% (|\getformat|==0 for \LaTeXe) or |documentstyle| (|\getformat|==1 for
+% \LaTeX~2.09) command. If |\getformat| is larger than~1, nothing is done at
+% this point. In this case the file is included into another file, which
+% already loaded the position style file.
+% 
+% \DescribeMacro{file epilog}
+% The epilog of a generated file has the following structure:
+% 
+% \begin{verbatim}
+% \ifmfiles\def\END{\relax}\else\def\END{\end{document}}\fi
+% \END
+% \end{verbatim}
+% 
+% If the conditional |\ifmfiles| is true (it is set at beginning of the
+% file), the macro |\END| is defined as |\relax|, otherwise it is defined as
+% |\end{document}|. If the file was used as standalone file, the final macro
+% |\END| is expanded to |\end{document}|; otherwise it is expanded to
+% |\relax|, and control goes back to the wrapper file.
+% 
+% \DescribeMacro{\getformat}
+% Now we are again in the file |position.sty|. First we have to check if
+% |\getformat| was already defined (in case of a stand-alone file). If not,
+% it it declared at this point.
+% 
+%    \begin{macrocode}
+\ifx\getformat\undefined\newcount\getformat\getformat0\fi
+\newif\ifmfiles\mfilesfalse
+%    \end{macrocode}
+% 
+% \subsection{Definitions}
+% \subsubsection{Font definitions}
+% The following part contains some definitions for used fonts.
+% The switch |ifoldlatex| is used for compatibility with \LaTeX~2.09. If
+% this conditional is set to true, the low-level font declarations |\rm|,
+% |\bf|\dots{} are used instead of the \LaTeXe{} font declarations
+% |\normalfont|, |\bfseries|\dots{}
+% 
+% The font |\blockfont| is used for block comments (that is for comments
+% starting with |/*\b| or |/*********...*****\b| in C. All other definitions
+% should be obviously.
+% 
+% \DescribeMacro{special characters}
+% The hyphen character (`-') is too short for standard program code; so it
+% is replaced by a macro |\mm|. For text fonts, we use a dash with a little
+% kern around it for the ASCII character `-' 
+% (|\kern0.05em{--}\kern0.05em|); for the tt font we have to switch
+% back to a single hyphen.
+% 
+% Another problem are the braces |\{| and |\}|: in the tt fonts they are not
+% defined. In the generated file, `\{' is replaced by the macro |\brl| and
+% `\}' is replaced by the macro |\brr|. 
+% 
+% In a text font, the macros |\brl| and |\brr| are expanded to `\bs\{'
+% resp.\ `\bs\}'; for the tt font family these macros are replaced by
+% |\symbol{`\{}}| and |\symbol{`\}}}|.
+% 
+% All these definitions are made by two macros: |\pstd| enables the
+% definitions for a standard font, while |\ptt| enables the tt font
+% definitions.
+% 
+% Each font command contains the (\LaTeX{}) font change command (e.g.
+% |\bfseries|) and either |\ptt| or |\pstd| to select the translation of the
+% special symbols.
+% 
+%    \begin{macrocode}
+\newif\ifoldlatex\oldlatextrue
+\gdef\pstd{\gdef\mm{\kern0.05em{--}\kern0.05em{}}\gdef\brl{\{}\gdef\brr{\}}}
+\gdef\ptt{\gdef\mm{-}\gdef\brl{\symbol{`\{}}\gdef\brr{\symbol{`\}}}}
+\ifoldlatex
+ \gdef\basefont{\rm\pstd}
+ \gdef\blockfont{\rm\pstd}
+ \gdef\keywordfont{\bf\pstd}
+ \gdef\stringfont{\tt\ptt}
+ \gdef\commentfont{\it\pstd}
+ \gdef\headfont{\sl\pstd}
+ \gdef\footfont{\sl\pstd}
+\else
+ \gdef\basefont{\normalfont\pstd}
+ \gdef\blockfont{\normalfont\pstd}
+ \gdef\keywordfont{\bfseries\pstd}
+ \gdef\stringfont{\ttfamily\ptt}
+ \gdef\commentfont{\itshape\pstd}
+ \gdef\headfont{\slshape\pstd}
+ \gdef\footfont{\slshape\pstd}
+\fi
+\basefont
+%    \end{macrocode}
+% \subsubsection{Definition of special Characters}
+% Here are the definitions for some special characters and
+% some macros for output of multiple characters:
+% 
+% \begin{dsca}
+% \itx{spy}       symbol for blank in LEX/YACC pattern (printed as {\tt \symbol{'040}})
+% \itx{sq}        symbol used for single quote in program code
+% \itx{qql}       opening double quote for strings (\LaTeX{} or tt style; default is \LaTeX{} style)
+% \itx{qqr}       closing double quote for strings (same as above)
+% \itx{ul}        alternate form for `\_' (with additional kern)
+% \itx{bs}        multiple backslashes (with additional kern)
+% \itx{mlt}       multiple $<$ characters (with additional kern)
+% \itx{mgt}       multiple $>$ characters (with additional kern)
+% \itx{mast}      multiple stars
+% \itx{mblank}    multiple blanks
+% \itx{n}         empty line/end of a line
+% \end{dsca}
+% 
+% The alternate forms for |\qql|, |\qqr| and |\ul| are commented out; you may
+% use these if you like.
+% 
+%    \begin{macrocode}
+\gdef\spy{{\tt \symbol{'040}}}
+\gdef\sq{{\tt\symbol{13}}}
+\gdef\qql{``}
+\gdef\qqr{''}
+\gdef\ul{{\_\kern.1em}}
+
+%\gdef\qql{{\tt "}}
+%\gdef\qqr{{\tt "}}
+%\gdef\ul{\_}
+\gdef\bs#1{$\count255=1\loop\ifnum\count255<#1\advance\count255 by 1
+ \backslash\hspace*{-.2em}\repeat\backslash$}
+\gdef\mlt#1{$\count255=1 \loop\ifnum\count255<#1\advance\count255 by 1
+  <\hspace*{-.4em}\repeat<$}
+\gdef\mgt#1{$\count255=1 \loop\ifnum\count255<#1\advance\count255 by 1
+  >\hspace*{-.4em}\repeat>$}
+\gdef\mast#1{$\count255=0 \loop\ifnum\count255<#1\advance\count255 by 1
+  \ast\repeat$}
+\gdef\mblank#1{\count255=0 \loop\ifnum\count255<#1\advance\count255 by 1
+  ~\repeat}
+\gdef\n{\mbox{}\\}
+%    \end{macrocode}
+% \subsection{Internal Macros}
+% \subsubsection{Register Allocations}
+% \DescribeMacro{Allocations}
+% Now we go into medias res. First some register allocations:
+% 
+% \begin{dsca}
+% \itx{poutbox}    box for output
+% \itx{pstartbox}  box for line begin (inserted \emph{after} a line break)
+% \itx{pendbox}    box for line end (inserted \emph{before} a line break)
+% \itx{pcur}       current position
+% \itx{pcurbr}     indentation value for line break in comments
+% \itx{pcmtstart}  start position of a multi-line comment
+% \itx{plena}      current line length, depending on indentation and continuation
+% \itx{pdecr}      decrement value for too long lines
+% \itx{pstarta}    value of indentation at line begin
+% \itx{pstart}     current value of indentation
+% \itx{ind}        indentation unit (width for 1 ASCII position difference; standard is .5em)
+% \itx{pst}        macro for inserting a `$\ast$' in continuation lines of C comments
+% \itx{ifpend}     test if |\pendbox| should be shipped out at end of line.
+% \itx{ifpbrk}     enable/disable automatic linebreak (not yet used)
+% \end{dsca}
+% 
+%    \begin{macrocode}
+\newbox\poutbox
+\newbox\pstartbox
+\newbox\pendbox
+\newif\ifpend
+\newif\ifpbrk
+\newlength\pcur
+\newlength\pcurbr
+\newlength\pcmtstart
+\newlength\plena
+\newlength\plinenowidth
+\newlength\ind
+\newcount\pdecr
+\newcount\pstarta
+\newcount\pstart
+\gdef\pst{$\ast$}
+\pbrktrue
+\ind.5em
+\setbox\pstartbox=\hbox{}
+\setbox\pendbox=\hbox{}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\init}
+% This macro (or |\initc|) must be used at the beginning of each line; it
+% initializes the position environment.
+% 
+%    \begin{macrocode}
+\gdef\init#1#2{%
+ \par\noindent\hbox to \plinenowidth{\hss {\rm\scriptsize #2}\hspace{1em}}%
+ \plena\textwidth \advance\plena -\plinenowidth
+ \pdecr0
+ \pcurbr0pt
+ \setbox\pstartbox=\hbox{}%
+ \pstart#1\advance\pstart 1 \pstarta\pstart
+ \skip0\ind\multiply\skip0 by #1 \pcur\skip0
+ \ifnum #1>0 \hspace*{\skip0}\fi%
+ \ifpend\advance\plena -\wd\pendbox\fi%
+}
+%    \end{macrocode}
+% \DescribeMacro{\initc}
+% This macro is used instead of |\init| for continuation lines of multi-line
+% strings/comments to preserve the current indentation and |\pstartbox|.
+% Supplied parameters are:
+% 
+% \begin{dsca}
+% \itm{Parameter \tt \#1:\hfill} amount of space to move left or right (relative to the last line)
+% \itm{Parameter \tt \#2:\hfill} mode flag
+% \itm{Parameter \tt \#3:\hfill} number of blanks before text start
+% \end{dsca}
+% 
+% the mode flag has the following values:
+% \begin{dsca}
+% \itm{mode=0:} used for strings
+% \itm{mode=1:} not in use
+% \itm{mode=2:} not in use
+% \itm{mode=3:} not in use
+% \itm{mode=4:} used for C++ comments
+% \itm{mode=5:} used for C comments (with $\ast$ at line begin)
+% \itm{mode=6:} used for C comments (without $\ast$ at line begin)
+% \itm{mode=7:} not in use
+% \end{dsca}
+% 
+% NOTE: Not all modes are currently in use or fully implemented in the
+% |tiny_c2l| converter. They may be used/modified in a later version (or change
+% the values or actions).
+% 
+%    \begin{macrocode}
+\gdef\initc#1#2#3#4{%
+ \par\noindent\pdecr0%
+ \hbox to \plinenowidth{\hss {\rm\scriptsize #4}\hspace{1em}}%
+ \ifcase#2
+   \pcurbr\ind\multiply\pcurbr #1 \pcur\pcurbr \gdef\pst{}% 0
+ \or%
+   \pcurbr\ind\multiply\pcurbr #1 \gdef\pst{$\ast$}% 1
+ \or%
+   \pcurbr\ind\multiply\pcurbr #1
+   \advance\pcurbr\pcmtstart \gdef\pst{}% 2
+ \or%
+   \pcurbr\ind\multiply\pcurbr #1
+   \advance\pcurbr\pcmtstart \gdef\pst{$\ast$}% 3
+ \or%
+   \pcurbr\pcmtstart \setbox\poutbox=\hbox{/}%
+   \advance\pcurbr\wd\poutbox \gdef\pst{}% 4
+ \or%
+   \pcurbr\pcmtstart \setbox\poutbox=\hbox{/}%
+   \advance\pcurbr\wd\poutbox \gdef\pst{$\ast$}% 5
+ \or%
+   \pcurbr\pcmtstart \setbox\poutbox=\hbox{/$\ast$}%
+   \advance\pcurbr\wd\poutbox \gdef\pst{}% 6
+ \or%
+   \pcurbr\pcmtstart \setbox\poutbox=\hbox{/$\ast$}%
+   \advance\pcurbr\wd\poutbox \gdef\pst{$\ast$}% 7
+ \or%
+   \pcurbr\ind\multiply\pcurbr #1 \gdef\pst{}% 8
+ \else%
+   \pcurbr0pt \gdef\pst{}%
+ \fi%
+ \setbox\pstartbox=\hbox{\pst\mblank{#3}}%
+ \hspace*{\pcurbr}\copy\pstartbox%
+ \pcur\pcurbr \advance\pcur\wd\pstartbox
+ \ifpend\advance\plena -\wd\pendbox \fi%
+ \ifnum#2=8 \pcurbr0pt\fi%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\plcntmargin}
+% This macro is used to set the margin width for line numbers. It is
+% invoked after a page is shipped out; so you should use a width that is
+% enough for the next 100 lines or so.
+% 
+%    \begin{macrocode}
+\gdef\plcntmargin#1{%
+ \setbox\poutbox=\hbox{#1\hspace{1em}}\global\plinenowidth\wd\poutbox
+}
+%    \end{macrocode}
+% \DescribeMacro{line end macros}
+% These two macros enable (|\pee|) and disable (|\ped|) the insertion
+% of |\pendbox| at the end of a source line. The actual value is set using
+% the macro |\pes|. All three macros modify the value of |\plena| (the
+% current page width) to ensure correct line breaking.
+%    \begin{macrocode}
+\gdef\pee{\advance\plena -\wd\pendbox\pendtrue}
+\gdef\ped{\advance\plena \wd\pendbox\pendfalse}
+\gdef\pes#1#2{%
+ \setbox\pendbox=\hbox{#1}%
+ \advance\plena -\wd\pendbox
+ \ifnum#2 > -1 \pstart#2\fi%
+ \pendtrue%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\psinit}
+% This macro is used to initialize |\pstartbox| and |\pstart|.
+%    \begin{macrocode}
+\gdef\psinit#1#2{%
+ \ifnum#1>-1 \pstart#1\fi%
+ \ifnum#1=-2 \pstart\pstarta\fi%
+ \setbox\pstartbox=\hbox{#2}%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\cmtinit}
+% This macro is used to save the current indentation at start of a comment.
+%    \begin{macrocode}
+\gdef\cmtinit{\pcurbr\pcur \pcmtstart\pcur}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\eol}
+% This macro is used at end of a line (for breaking overlong lines).
+% If the condition |\ifpend| is true, copy |\pendbox| to the end of the line,
+% then a line break is inserted.
+%    \begin{macrocode}
+\gdef\eol{\ifpend\copy\pendbox\else\mbox{}\fi\\\hspace*{\plinenowidth}}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\calcindent}
+% This macro is used to calculate the indentation after a linebreak
+%    \begin{macrocode}
+\gdef\calcindent{%
+ \ifdim\pcurbr>0pt\skip0\pcurbr
+\else%
+ \skip0\ind \multiply\skip0\pstart
+\fi
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\brkln}
+% This macro is used to break the current line.
+%    \begin{macrocode}
+\gdef\brkln{%
+ \ifpbrk%
+   \eol %insert line break
+   \calcindent% calculate the indentation for the new line
+   \pdecr\count255 \advance\pdecr-\pstart
+   \pcur\wd\poutbox \advance\pcur\skip0
+   \hspace*{\skip0}\copy\pstartbox%
+   \advance\pcur\wd\pstartbox
+ \else%
+   \hspace*{\skip0}%
+ \fi%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\jmpo}
+% This macro is used to jump to the position specified in |#1| and print the
+% text from |#2|. If this position is smaller than the current position,
+% insert a small space (0.25em) and then print the text. If the output
+% would exceed the line length, break the line, preserving the current
+% indentation (in this case the starting point is the current indentation+1|\ind|).
+%    \begin{macrocode}
+\gdef\jmpo#1#2{%
+ \ifnum#1>0
+   \count255 #1\advance\count255 -\pdecr
+   \skip0\ind \multiply\skip0\count255 %calculate the output position
+   \advance\skip0-\pcur %calculate the width of the needed space
+   \count255 #1 %current start position (needed for line break)
+ \fi%
+ \ifdim\skip0<0.25em %(current position > target position)
+   \skip0 0.25em% insert a small space 
+ \fi%
+ \ifnum #1<1 \skip0 0pt \count255 -#1\fi%
+   %copy #2 to \poutbox and add the width of the box to \pcur
+ \setbox\poutbox=\hbox{#2}%
+%%%% probieren: \advance\pcur\wd\poutbox \advance\pcur\skip0
+%%%% dann ohne \relax
+ \advance\pcur\skip0 \advance\pcur\wd\poutbox %calculate the new position
+ \relax% TeX seems to be tired at this point; give it some rest ;-)))
+ \ifdim\pcur>\plena %requested position > right margin; break line
+   \brkln%
+ \else%
+   \hspace*{\skip0}%
+ \fi%
+ \box\poutbox%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\xnjo}
+% This macro is used to output the text in |#3| at ``wish position'' in |#2|,
+% using |#1| blanks. The used space per blank is from 0.3em to
+% 0.45em (according to the current position). This macro does nearly
+% the same as |\njo|, but is intended only for multiple blanks; the cases for
+% |#2|$<$1 are left out.
+% 
+% The used space interval is smallter than that used for |\njo|; this macro
+% is intended to be used in comments etc.
+% 
+%    \begin{macrocode}
+\gdef\xnjo#1#2#3{%
+ \count255 #2 \advance\count255 -\pdecr
+ \skip0\ind \multiply\skip0\count255
+ \advance\skip0-\pcur \divide\skip0 #1
+ \count255 #2 %current start position (for line break)
+ \ifdim\skip0<0.3em \skip0 0.3em \multiply\skip0 #1\fi%
+ \ifdim\skip0>0.45em \skip0 0.45em \multiply\skip0 #1\fi%
+   %copy #3 to \poutbox and add the width of the box to \pcur
+ \setbox\poutbox=\hbox{#3}%
+ \advance\pcur\wd\poutbox \advance\pcur\skip0
+ \ifdim\pcur>\plena %requested position > right margin
+   \brkln% insert a line break
+ \else%
+   \hspace*{\skip0}%
+ \fi%
+ \box\poutbox%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\njo}
+% This macro is used to output the text specified in parameter~2 at the grid
+% position specified in parameter~1, without jumping to the position (used
+% for a single blank). The actual used space is from 0.25em to
+% 0.55em, according to the current position. If |#1|$\leq 0$, output
+% |#2| directly (without blank). If the output would exceed the line length,
+% break the line as in |\jmpo|.
+% 
+%    \begin{macrocode}
+\gdef\njo#1#2{%
+ \ifnum#1<0 \count255 -#1 \skip0 0pt\fi%
+ \ifnum#1=0 \count255 0 \skip0 0pt\fi%
+ \ifnum#1>0%
+   \count255 #1 \advance\count255 -\pdecr
+   \skip0\ind \multiply\skip0\count255
+   \advance\skip0-\pcur
+   \count255 #1 %current start position (for line break)
+ \fi%
+ \ifdim\skip0<0.25em \skip0 0.25em\fi%
+ \ifdim\skip0>0.55em \skip0 0.55em\fi%
+ \ifnum#1<1 \skip0 0pt\fi%
+   %copy #2 to \poutbox and add the width of the box to \pcur
+ \setbox\poutbox=\hbox{#2}%
+ \advance\pcur\wd\poutbox \advance\pcur\skip0
+ \ifdim\pcur>\plena %requested position > right margin
+   \brkln% insert a line break
+ \else%
+   \hspace*{\skip0}%
+ \fi%
+ \box\poutbox%
+}
+%    \end{macrocode}
+% 
+% \DescribeMacro{\mpout}
+% This macro is related to the \TeX{} |\leaders|. It outputs the character
+% (or text) specified in |#3| from grid position |#1| to grid position |#2|.
+% |#4| can is used to specify additional kern (this is used for example for
+% $<$ and $>$).
+% 
+%    \begin{macrocode}
+\gdef\mpout#1#2#3#4{%
+ \ifnum#1>0 \skip0\ind\multiply\skip0 by #1\advance\skip0-\pcur \fi%
+ \ifdim\skip0<0pt \skip0 0pt\fi% don't move back!
+ \ifnum#1>0 \hspace*{\skip0}\advance\pcur\skip0\fi%
+ \setbox\poutbox=\hbox{#3}\skip0\wd\poutbox %width of one output character (#3)
+ \skip1\ind\multiply\skip1 by #2 \skip2\skip1 \advance\skip1-\pcur
+ \pcur\skip2 \advance\pcur\skip0 \skip2\skip1 %total width of line
+ \advance\skip0 #4 %add kern
+ \divide\skip1\skip0 \count255\skip1 \advance\count255 by 1% number of characters
+ \skip1\wd\poutbox \multiply\skip1 by \count255 \advance\skip2 -\skip1
+ \ifdim\skip2<0pt \advance\count255 -1 \advance\skip2 \wd\poutbox \fi%
+ \divide\skip2\count255
+ \copy\poutbox%
+ \loop%
+   \ifnum\count255>0\advance\count255 by -1 \hspace*{\skip2}\copy\poutbox%
+ \repeat%
+}
+%</package>
+%    \end{macrocode}
+% % \Finale
+% \endinput    
+
