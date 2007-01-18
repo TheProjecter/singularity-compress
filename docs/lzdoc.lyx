@@ -64,6 +64,11 @@ Algoritmi de compresie
 
 \begin_layout Subsection
 Range encoding
+\begin_inset LatexCommand \label{sub:Range-encoding}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1601,6 +1606,11 @@ Pentru a înlãtura acest dezavantaj se evitã stocarea modelului.
 
 \begin_layout Subsection
 Compresie folosind coduri distanþã-lungime
+\begin_inset LatexCommand \label{sub:Compresie-folosind-coduri}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2742,6 +2752,31 @@ i.
 \end_layout
 
 \begin_layout Subsubsection
+Arbori Judy de bazã: JudyL, Judy1
+\end_layout
+
+\begin_layout Description
+JudyL reprezintã un arbore Judy care mapeazã întregi (pe 32/64 biþi) la
+ întregi/pointeri (tot pe 32/64 biþi).
+ Poate fi privit ºi ca un vector 
+\begin_inset Quotes eld
+\end_inset
+
+rar
+\begin_inset Quotes erd
+\end_inset
+
+ (sparse).
+\end_layout
+
+\begin_layout Description
+Judy1 poate fi privit ca ºi un vectori de biþi.
+ Vectorul poate fi rar.
+ Dacã un index este prezent înseamnã cã bitul este setat, iar unul absent
+ reprezintã un bit nesetat.
+\end_layout
+
+\begin_layout Subsubsection
 JudySL
 \begin_inset LatexCommand \label{sub:JudySL}
 
@@ -2757,6 +2792,47 @@ JudySL este un vector asociativ, implementat folosing JudyL, în felul urmãtor:
  ca ºi indexi, reprezentând un prefix unic pentru fiecare ºir.
  Fiecare nod terminal este un pointer la sufixul unic al ºirului (un ºir
  se poate termina ºi fãrã nod terminal).
+\end_layout
+
+\begin_layout Subsubsection
+Diferenþiere JudyL, ºi Judy1
+\begin_inset LatexCommand \label{sub:Diferenþiere-JudyL,-ºi}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Dacã într-o aplicaþie lucrãm atât cu pointeri cãtre JudyL, cât ºi cãtre
+ Judy1, ºi nu vrem sã irosim un flag care sã facã distincþia, avem la dispoziþie
+ o soluþie, care se bazeazã pe urmãtoarea observaþie:
+\end_layout
+
+\begin_layout Standard
+Un pointer (alocat cu 
+\emph on
+malloc(3), calloc(3), realloc(3)
+\emph default
+ ) este aliniat la cel puþin 4 octeþi, acesta înseamnã cã biþii cei mai
+ puþin semnificativi sunt 00.
+\end_layout
+
+\begin_layout Standard
+Astfel convenim ca un pointer care are biþii cei mai puþin semnificativi
+ 00, este un pointer JudyL (lucru uºor de verificat cu o mascã).
+\end_layout
+
+\begin_layout Standard
+În cazul pointerilor Judy1 modificãm pointerul, setând biþii cei mai puþin
+ semnificativi la stocare, respectivi îi resetãm ca sã obþinem pointerul
+ original.
+\end_layout
+
+\begin_layout Standard
+Aceastã abordare este folositã la implementarea JudySL, ºi avem chiar ºi
+ un flag (JLAP_INVALID) pe care sã-l putem folosi în mod portabil (curent
+ JLAP_INVALID=0x1).
 \end_layout
 
 \begin_layout Section
@@ -2867,6 +2943,11 @@ Acest algoritm l-am implementat în mk_codes.c (
 
 \begin_layout Subsection
 Implementarea algoritmului LZ77 folosind arbori Judy
+\begin_inset LatexCommand \label{sub:Implementarea-algoritmului-LZ77}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2916,7 +2997,7 @@ Pe baza descrierii algoritmului JudySL din secþiunea
 \end_layout
 
 \begin_layout Standard
-- judy_search_longestmatch(judyarray, data, length, &distance, &position)
+- lzbuff_search_longestmatch(judyarray, data, length, &distance, &position)
 \end_layout
 
 \begin_layout Standard
@@ -2926,6 +3007,1952 @@ Implementarea se aflã în lz_coder.c
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+Aceastã implementare (realizatã de mine), este unica care foloseºte arbori
+ Judy pentru LZ77.
+\end_layout
+
+\begin_layout Subsubsection
+Structura de date creatã de judy_insert_bytearray
+\begin_inset LatexCommand \label{sub:Structura-de-date}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Scopul este de a asocia unei secvenþe de caractere un întreg, reprezentând
+ poziþia la care acesta apare în buffer-ul de intrare.
+\end_layout
+
+\begin_layout Standard
+Datele de intrare se aflã într-un buffer circular.
+ Dimensiunea bufferului s-a ales a fi putere a lui 2, pentru cã în acest
+ caz se poate determina simplu (ºi eficient) offset-ul din buffer corespunzãtor
+ unei anumite poziþii din fiºierul original, ºi anume: 
+\begin_inset Formula $offset\& len\_mask$
+\end_inset
+
+, unde 
+\begin_inset Formula $len\_mask=2^{n}-1$
+\end_inset
+
+, lungimea bufferului fiind 
+\begin_inset Formula $2^{n}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Fiindcã JudyL lucreazã cu întregi, procesãm din secvenþa de intrare câte
+ 4 octeþi deodatã.
+ Ca sã funcþioneze corect cãutarea, trebuie sã pãstrãm ordinea octeþilor,
+ deci avem nevoie de o reprezentare big-endian.
+ Cum pe arhitectura intel, ºi amd64 întregii se reprezintã folosind convenþia
+ little-endian, trebuie sã convertesc din big-endian în little-endian.
+ Am folosit funcþia standard POSIX.1 
+\emph on
+ntohl(3) 
+\emph default
+.
+ Folosind compilatorul 
+\emph on
+gcc
+\emph default
+ (GNU C Compiler), sau 
+\emph on
+icc
+\emph default
+ (Intel C/C++ compiler), nici nu se mai face apelul de funcþie, ci se substituie
+ cu instrucþiunea 
+\emph on
+bswap.
+\end_layout
+
+\begin_layout Standard
+Dar în acest fel putem lucra numai cu offseturi multiplii de 4.
+ Pentru a evita acest neajuns, copiem primii 4 octeþi la sfârºitul bufferului,
+ astfel suntem siguri cã accesând orice offset din buffer, nu depãºim limitele
+ lui.
+\end_layout
+
+\begin_layout Standard
+În continuare se cautã în arborele JudyL curent acest întreg determinat
+ mai sus.
+ Dacã nu se gãseºte se insereazã, împreunã cu toþi subarborii necesari.
+\end_layout
+
+\begin_layout Standard
+Dacã se gãseºte, se citeºte valoarea asociatã, acesta reprezentând un pointer
+ cãtre urmãtorul arbore JudyL/Judy1.
+ 
+\end_layout
+
+\begin_layout Standard
+Diferenþierea dintre JudyL/Judy1 se face ca ºi la secþiunea 
+\begin_inset LatexCommand \ref{sub:Diferenþiere-JudyL,-ºi}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Dupã procesarea unei anumite porþiuni din datele de intrare (o limitã fixã),
+ se stocheazã într-un arbore Judy1 poziþiile coresp.
+ 
+\end_layout
+
+\begin_layout Standard
+De exemplu stocãm 
+\emph on
+
+\begin_inset Quotes eld
+\end_inset
+
+01234567ABCDEFGH
+\begin_inset Quotes erd
+\end_inset
+
+
+\emph default
+ cu limita de 
+\emph on
+2x4
+\emph default
+ octeþi, ºi poziþia 
+\emph on
+0x200
+\emph default
+; ºi 
+\emph on
+
+\begin_inset Quotes eld
+\end_inset
+
+01234567ZBCDEFH
+\begin_inset Quotes erd
+\end_inset
+
+
+\emph default
+ cu poziþia 
+\emph on
+0x300
+\emph default
+:
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+\begin_inset Quotes eld
+\end_inset
+
+0123
+\begin_inset Quotes erd
+\end_inset
+
+ => 0x30313233
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+\begin_inset Quotes eld
+\end_inset
+
+4567
+\begin_inset Quotes erd
+\end_inset
+
+ => 0x34353637
+\end_layout
+
+\begin_layout Standard
+judyarray1[0x30313233] => judyarray2 (inserat); judyarray2[0x34353637] =>
+ judy1array1 (inserat); judy1array1[0x200] => setat
+\end_layout
+
+\begin_layout Standard
+judyarray1[0x30313233] => judyarray2 (gãsit); judyarray2[0x34353637] =>
+ judy1array1 (gãsit); judy1array[0x300] => setat
+\end_layout
+
+\begin_layout Subsubsection
+Cãutarea folosing lzbuff_search_longestmatch
+\end_layout
+
+\begin_layout Standard
+Se foloseºte procedeul de cãutare de la secþiunea 
+\begin_inset LatexCommand \ref{sub:Structura-de-date}
+
+\end_inset
+
+.
+ Diferenþa este la gãsirea unei potriviri complete, respectivi a unei nepotrivir
+i.
+\end_layout
+
+\begin_layout Standard
+Dacã nepotrivirea este la poziþia 
+\emph on
+i 
+\emph default
+, ºtim cã 
+\emph on
+i
+\emph default
+ octeþi s-au potrivit, însã nu ºtim încã care este situaþia celor 4 octeþi
+ tocmai comparaþi.
+ ªtim cã nu sunt egali toþi, dar totuºi ar putea fi o potrivire de 1,2,3
+ octeþi.
+ Pentru acesta am implementat 
+\emph on
+compare_bytes(a, b)
+\emph default
+, care procedeazã în felul urmãtor:
+\end_layout
+
+\begin_layout Itemize
+se efectueazã 
+\emph on
+xor
+\emph default
+ între 
+\emph on
+a
+\emph default
+ ºi 
+\emph on
+b
+\end_layout
+
+\begin_layout Itemize
+acum acei octeþi care sunt 0, semnificã cã existã o potrivire între octeþii
+ respectivi între 
+\emph on
+a
+\emph default
+ ºi 
+\emph on
+b
+\end_layout
+
+\begin_layout Itemize
+în continuare se verificã octet-cu-octet pânã unde existã potrivire, aceastã
+ verificare se face cu mãºti
+\end_layout
+
+\begin_layout Itemize
+aceastã metodã necesitã 4 instrucþii de salt, dar compilatorul 
+\emph on
+gcc
+\emph default
+ a optimizat ultima instrucþiune de salt, ºi l-a înlocuit cu urmãtoare secvenþã:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\emph on
+cmp al,1
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+sbb edx,edx
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+not edx
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+add edx,4
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+mov eax,edx
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+codul în C din care a fost generat codul de mai sus este:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\emph on
+if(c&0x000000ff) return 3;
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+return 4
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Funcþionarea acestei secvenþe de cod se explicã astfel:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+
+\emph on
+cmp al,1
+\emph default
+ : se seteazã CF, dacã al < 1, adicã dacã al == 0
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+sbb edx,edx
+\emph default
+ : care înseamnã edx = (edx + CF)-edx, sau edx = CF, sau al==0 => edx =
+ 1, altfel 0
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+not edx
+\emph default
+ : dacã edx == 1 => edx = 0xffffffff (-1); adicã dacã al==0 => edx = 0xffffffff,
+ altfel edx = 0
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+add edx,4
+\emph default
+ : al==0 => edx = 4-1 =3; altfel edx=4
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+mov eax,edx
+\emph default
+ : se returneazã ca ºi rezultat edx calculat anterior
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+Mai existã ºi posibilitatea ca indexul urmãtor sau anterior sã aibã mai
+ multe potriviri, aºa cã se comparã ºi acestea.
+ În final se cautã primul arbore Judy1 din ierarhia de arbori JudyL.
+ Din aceste Judy1 se alege poziþia care este cea mai apropriatã de cea curentã.
+\end_layout
+
+\begin_layout Standard
+Se ºtie lungimea potrivirii, iar distanþa se calculeazã cu formula: 
+\begin_inset Formula $distance=(offset_{curent}-offset_{gasit})\& len\_mask$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Programul singularity-compress
+\begin_inset LatexCommand \label{sub:Programul-singularity-compress}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Folosind implementarea LZ77 descris în secþiunea 
+\begin_inset LatexCommand \ref{sub:Implementarea-algoritmului-LZ77}
+
+\end_inset
+
+, ºi o variantã modificatã a rangecoderului lui Michael Schindler
+\begin_inset LatexCommand \cite{key-range}
+
+\end_inset
+
+ am realizat un program numit singularity-compress.
+\end_layout
+
+\begin_layout Standard
+Modificãrile faþã de rangecoderul lui Michael Schindler sunt:
+\end_layout
+
+\begin_layout Itemize
+utilizare model adaptiv de ordinul 0, în loc de model static
+\end_layout
+
+\begin_layout Itemize
+extindere alfabet pentru LZ77
+\end_layout
+
+\begin_layout Standard
+Alte caracteristici:
+\end_layout
+
+\begin_layout Itemize
+Program de self-extract de 4608 octeþi (faþã de 16k-100k la celelalte programe
+ testate)
+\end_layout
+
+\begin_layout Itemize
+posibilitate de îmbunãtãþire a ratei de compresie, prin înlocuirea modelului,
+ cu unul mai eficient
+\end_layout
+
+\begin_layout Subsubsection
+Rezultate
+\end_layout
+
+\begin_layout Standard
+Compresia unui fiºier text de 17962 octeþi => 11423 octeþi în 0.6 secunde.
+ Programul 
+\emph on
+zip
+\emph default
+ reuºeste o compresie mult mai bunã: 5221 octeþi.
+\end_layout
+
+\begin_layout Standard
+Concluzia este cã deºi implementarea LZ77 este eficientã, un model adaptiv
+ de ordinul 0 este mai ineficient decât codificarea Huffman.
+\end_layout
+
+\begin_layout Standard
+Acest lucru nefiind adevãrat pentru modele adaptive de ordin superior, cum
+ dovedeºte secþiunea urmãtoare.
+\end_layout
+
+\begin_layout Subsection
+Optimizãri PAQ8F
+\begin_inset LatexCommand \label{sub:Optimizãri-PAQ8F}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Unul din cele mai puternice programe de compresie este PAQ8F creat de Matt
+ Mahoney 
+\begin_inset LatexCommand \cite{key-paq}
+
+\end_inset
+
+.
+ Acesta se bazeazã pe un codificator aritmetic (similar cu rangecoderul
+ descris la secþiunea 
+\begin_inset LatexCommand \ref{sub:Range-encoding}
+
+\end_inset
+
+, ºi foloseºte mai multe modele pentru predicþia probabilitãþii unui simbol.
+ Aceste modele sunt combinate cu ajutorul unei reþele neuronale.
+ Cu opþiunile pentru compresie maximã programul poate necesita câþiva GB
+ de memorie, atât la compresie, cât ºi la decompresie.
+ De asemenea timpul de decompresie este aproape identic cu cel de compresie
+ (fiecare trebuie sã recalculeze modelul, iar acesta e cel mai costisitor).
+\end_layout
+
+\begin_layout Standard
+Am considerat cã pentru a putea fi folosit practic programul, are nevoie
+ de o variantã mai simplã, care:
+\end_layout
+
+\begin_layout Itemize
+foloseºte mai puþinã memorie
+\end_layout
+
+\begin_layout Itemize
+este mai rapid
+\end_layout
+
+\begin_layout Itemize
+are un dezarhivator mai mic < 32kb
+\end_layout
+
+\begin_layout Standard
+Am modificat paq8f, ºi l-am denumit paq8f-mini.
+ Acesta are urmãtoarele caracteristici:
+\end_layout
+
+\begin_layout Itemize
+dezarhivator de 23Kb
+\end_layout
+
+\begin_layout Itemize
+arhivator de 52Kb
+\end_layout
+
+\begin_layout Section
+Comparaþie între programe de arhivare
+\end_layout
+
+\begin_layout Subsection
+Date de test
+\end_layout
+
+\begin_layout Standard
+Am folosit datele de test de la 
+\emph on
+maximumcompression
+\emph default
+ 
+\begin_inset LatexCommand \cite{key-maxcomp}
+
+\end_inset
+
+.
+ Fiindcã programele de arhivare se pot comporta mai bine/mai rãu în funcþie
+ de tipul datelor de compresat, pentru o evaluare 
+\begin_inset Quotes eld
+\end_inset
+
+cinstitã
+\begin_inset Quotes erd
+\end_inset
+
+ trebuie folosite mai multe tipuri de fiºiere.
+\end_layout
+
+\begin_layout Standard
+În pachetul de fiºiere oferit de 
+\emph on
+maximumcompression
+\emph default
+, existã urmãtoarele tipuri de fiºiere:
+\end_layout
+
+\begin_layout Itemize
+text (în englezã) - 1995 CIA World Fact book (2.9Mb)
+\end_layout
+
+\begin_layout Itemize
+fiºier log - loguri de trafic de la fighter-planes.com (20Mb)
+\end_layout
+
+\begin_layout Itemize
+listã sortatã de cuvinte - listã alfabeticã de cuvinte engleze (4Mb)
+\end_layout
+
+\begin_layout Itemize
+executabil (EXE) - Acrobat Reader 5.0 (3.7Mb)
+\end_layout
+
+\begin_layout Itemize
+executabil (DLL) - Microsoft Office 97 Dynamic Link Library (3.6Mb)
+\end_layout
+
+\begin_layout Itemize
+imagine BMP - imagine 1356x1020 / 16.7 mil culori (4Mb)
+\end_layout
+
+\begin_layout Itemize
+imagine JPEG - imagine 1152x864 / 16.7 mil culori (823Kb)
+\end_layout
+
+\begin_layout Itemize
+fiºier HLP - Delphi First Impression OCX Help (4Mb)
+\end_layout
+
+\begin_layout Itemize
+fiºiere DOC - Occupational Health and Safety; MS Word (4Mb)
+\end_layout
+
+\begin_layout Itemize
+fiºier PDF - Macromedia Flash MX Manual; Adobe Acrobat (4.4Mb)
+\end_layout
+
+\begin_layout Subsection
+Programele de compresie
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="4">
+<features>
+<column alignment="left" valignment="top" leftline="true" width="0">
+<column alignment="left" valignment="top" leftline="true" width="0">
+<column alignment="left" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+program
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+versiune
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+autor
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+algoritm
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+paq-mini
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+paq8f-mini
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Török Edwin (Matt Mahoney)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+CM+ari
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+paq
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+paq8f
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Matt Mahoney
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+f+CM+ari
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+zip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+2.32 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Info-Zip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+lz77+huff
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+rar
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+3.60 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Alexander Roshal
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+f+LZ77+PPMII+huff
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+7zip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+4.43
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Igor Pavlovq
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+f+LZMA+PPMII+lz77+BWT
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+gzip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1.3.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Jean-Loup Gally, FSF
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+LZ77
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+bzip2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1.0.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Julian Seward
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+BWT+huff
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+algoritm
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+detalii
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+observaþii
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+CM
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Context Modeling
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+ari
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+codificare aritmeticã
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+f
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+filtre (aplicate înainte de compresie)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+LZ77
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Lempel-Ziv 77
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+vezi secþiunea 
+\begin_inset LatexCommand \ref{sub:Compresie-folosind-coduri}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+PPMII
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Prediction By Partial Match 
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+modelare statisticã
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+huff
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Huffman Coding
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+LZMA
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Lempel-Ziv-Markov chain Algorithm
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+specific 7zip
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+BWT
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Burrow-Wheeler Transform
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Observaþii
+\end_layout
+
+\begin_layout Itemize
+Programele paq8f-mini, ºi paq8f au fost compilate astfel: 
+\emph on
+g++ -O3 -mfpmath=sse -msse -msse2 -msse3 -mmmx -m3dnow -funsafe-math-optimizatio
+ns -funit-at-a-time -fomit-frame-pointer paq8f-mini.cpp
+\end_layout
+
+\begin_layout Itemize
+Programele zip, 7zip, gzip, bzip2 sunt cele din pachetele oficiale Debian
+ pentru arhitectura amd64
+\end_layout
+
+\begin_layout Itemize
+Programul rar, este cel de pe rarlabs.com, care este pe 32-biþi
+\end_layout
+
+\begin_layout Itemize
+Pentru rar am folosit setãrile de compresie recomandate pe 
+\emph on
+maximumcompression
+\emph default
+, ca sã obþin rata de compresie maximã
+\end_layout
+
+\begin_layout Itemize
+Pentru celelalte programe am folosit rata de compresie maximã
+\end_layout
+
+\begin_layout Itemize
+Memoria folositã de paq8f a fost de 1.8Gb
+\end_layout
+
+\begin_layout Itemize
+Celelalte programe au folosit mult mai puþinã memorie, (16-64Mb)
+\end_layout
+
+\begin_layout Itemize
+Programul 
+\emph on
+singularity-compress
+\emph default
+ descris în secþiunea 
+\begin_inset LatexCommand \ref{sub:Programul-singularity-compress}
+
+\end_inset
+
+ nu a fost inclus în teste, acesta nefiind eficient pe fiºiere de dimensiuni
+ mari
+\end_layout
+
+\begin_layout Subsection
+Efectuare teste
+\end_layout
+
+\begin_layout Standard
+Testele le-am efectuat în urmãtoarele condiþii:
+\end_layout
+
+\begin_layout Itemize
+Sistem test: Athlon64 3200+, 2Gb RAM DDR400
+\end_layout
+
+\begin_layout Itemize
+Sistem de operare: Debian sid (amd64), kernel: Linux 2.6.18-3-amd64 
+\end_layout
+
+\begin_layout Itemize
+compilator: gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
+\end_layout
+
+\begin_layout Itemize
+mãsurare timp: time (GNU time 1.7)
+\end_layout
+
+\begin_layout Standard
+Compilatorul l-am folosit doar la paq8f-mini, ºi paq8f ; pentru celelalte
+ programe am folosit pachete binare gata compilate.
+\end_layout
+
+\begin_layout Standard
+Paq8f-mini este varianta mea de paq8f descrisã în secþiunea 
+\begin_inset LatexCommand \ref{sub:Optimizãri-PAQ8F}
+
+\end_inset
+
+, iar paq8f este varianta originalã.
+\end_layout
+
+\begin_layout Subsubsection
+Alegere parametrii de mãsurat
+\end_layout
+
+\begin_layout Itemize
+dimensiunea comprimatã, fiindcã scopul principal al programelor de compresie
+ este reducerea acestuia
+\end_layout
+
+\begin_layout Itemize
+timp de compresie: acesta este mai puþin important, dar totuºi trebuie sã
+ fie o valoare rezonabilã
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+de exemplu: se foloseºte compresie pentru trimiterea datelor prin reþea.
+ În acest caz scopul este de a transfera fiºierul cât mai repede, acesta
+ însemnãnd:
+\begin_inset Formula $timp=timp_{compresie}+dimensiune_{comprimat}/viteza_{transfer}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+dacã timpul de compresie este foarte mare, poate depãºi chiar ºi timpul
+ necesar transmiterii datelor originale, adicã pentru a fi util trebuie
+ îndeplinitã condiþia:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $timp_{compresie}+\frac{dimensiune_{comprimata}}{viteza_{transfer}}<\frac{dimensiune_{originala}}{viteza_{transfer}}$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Subsubsection
+Parametrii derivaþi
+\end_layout
+
+\begin_layout Itemize
+ratã de compresie = 
+\begin_inset Formula $\frac{(dimensiune_{originala}-dimensiune_{comprimat})}{dimensiune_{originala}}$
+\end_inset
+
+, interpretare: mai mare => mai bun
+\end_layout
+
+\begin_layout Itemize
+vitezã = 
+\begin_inset Formula $\frac{dimensiune_{originala}[kB]}{timp_{compresie}}[kB/s]$
+\end_inset
+
+, interpretare: mai mare => mai bun
+\end_layout
+
+\begin_layout Subsection
+Rezultate compresie
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="6">
+<features>
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+program
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+timp arhivare
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+timp dezarhivare
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+dim comprimatã
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+ratã
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+vitezã(kB/s)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+paq8f-mini
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1362
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1364
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+10709453
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+79.84
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+38
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+paq8f
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+21000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+9079591
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+82.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+2.4
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+zip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+17.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+39743794
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+25.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+2915
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+rar
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+30
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+11486327
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+78.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1687
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+7zip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+40
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+2.45
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+11688445
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+78
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1297
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+gzip
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+8.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+14025629
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+73.6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+5891
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+bzip2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+138
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+138
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+13379118
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+74.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+376
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Concluzii
+\end_layout
+
+\begin_layout Itemize
+Cea mai bunã ratã de compresie o are 
+\emph on
+paq8f
+\emph default
+.
+ Preþul este viteza foarte scãzutã, ºi memoria necesarã (1.8Gb).
+\end_layout
+
+\begin_layout Itemize
+Urmãtorul este 
+\emph on
+paq8f-mini
+\emph default
+ are o ratã de compresie apropriatã, o vitezã mult mai bunã, ºi memorie
+ folositã de 20Mb
+\end_layout
+
+\begin_layout Itemize
+Foarte apropiaþi ca ºi ratã de compresie sunt 
+\emph on
+rar
+\emph default
+ ºi 
+\emph on
+7zip
+\end_layout
+
+\begin_layout Itemize
+În schimb cel mai rapid este 
+\emph on
+gzip.
+ 
+\emph default
+Rata de compresie fiind mai scãzutã, dar totuºi acceptabilã.
+\end_layout
+
+\begin_layout Itemize
+Urmãtoarele programe cu vitezã destul de bunã, ºi ratã de compresie rezonabilã
+ sunt 
+\emph on
+rar
+\emph default
+ ºi 
+\emph on
+7zip
+\end_layout
+
+\begin_layout Standard
+Pãrerea mea este cã atingerea unei rate de compresie cât mai mari este important
+ã, dar trebuie avut în vedere ºi timpul de compresie, ºi necesarul de memorie.
+ În acest sens meritã studiat cum se poate îmbunãtãþii în continuare paq8f-mini.
+\end_layout
+
+\begin_layout Standard
+De asemenea pentru comprimarea de fiºiere mici este importantã dimensiunea
+ programului de dezarhivare.
+ Pentru reducerea acestuia pot fi folosite ºi urmãtoarele metode:
+\end_layout
+
+\begin_layout Itemize
+scoaterea mesajelor de eroare/progres afiºate de dezarhivator
+\end_layout
+
+\begin_layout Itemize
+comprimarea dezarhivatorului cu UPX
+\end_layout
+
+\begin_layout Itemize
+separarea codului dezarhivatorului de cel al arhivatorului
+\end_layout
+
+\begin_layout Itemize
+folosirea optimizãrii pentru dimensiune a compilatorului
+\end_layout
+
+\begin_layout Itemize
+ºtergere simboluri de debug din executabil
+\end_layout
+
+\begin_layout Itemize
+ºtergere comentarii adãugata de compilator (secþiunea .comment în cazul gcc)
+\end_layout
+
+\begin_layout Standard
+Toate acestea le-am aplicat la singularity-compress, obþinând un executabil
+ de 3585 octeþi.
+\end_layout
+
+\begin_layout Standard
+De asemenea meritã studiat cu ce algoritm de codificare se poate obþine
+ o vitezã, ºi ratã de compresie rezonabilã, folosind algoritmul LZ77 cu
+ arbori Judy 
+\begin_inset LatexCommand \ref{sub:Implementarea-algoritmului-LZ77}
+
+\end_inset
+
+.
+ Este clar cã alegerea unui codificator aritmetic de ordinul 0 nu este bunã.
 \end_layout
 
 \begin_layout Bibliography
@@ -3031,6 +5058,12 @@ Adaptive Weighing of Context Models for Lossless Data Compression
 
 \begin_layout Bibliography
 
+\bibitem {key-range}
+Michael Schindler - http://www.compressconsult.com/rangecoder/
+\end_layout
+
+\begin_layout Bibliography
+
 \bibitem {key-lz77}
 Ziv J., Lempel A.
  - 
@@ -3047,6 +5080,12 @@ A Universal Algorithm for Sequential Data Compression
  337-343.
  http://www.cs.duke.edu/courses/spring03/cps296.5/papers/ziv_lempel_1977_universal_a
 lgorithm.pdf
+\end_layout
+
+\begin_layout Bibliography
+
+\bibitem {key-maxcomp}
+* - http://www.maximumcompression.com
 \end_layout
 
 \begin_layout Section
@@ -3515,6 +5554,34 @@ status open
 
 \backslash
 input{Makefile.tex}
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Programul paq8f-mini
+\end_layout
+
+\begin_layout Subsection
+paq8f.cpp
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+input{paq8f_cpp.tex}
 \end_layout
 
 \begin_layout Standard
