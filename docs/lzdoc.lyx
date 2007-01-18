@@ -49,12 +49,53 @@ Török Edwin
 \end_layout
 
 \begin_layout Standard
+\align right
+
+\size large
+Proiect Ingineria Calculatoarelor, 
+\end_layout
+
+\begin_layout Standard
+\align right
+
+\size large
+Universitatea Politehnicã Timiºoara, facultatea de Automaticã ºi Calculatoare,
+\end_layout
+
+\begin_layout Standard
+\align right
+
+\size large
+departamentul Calculatoare, anul 3, grupa 5.2
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 
 \newpage
 
 \end_layout
 
 \begin_layout Standard
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset
+
 
 \end_layout
 
