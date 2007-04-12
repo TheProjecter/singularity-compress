@@ -2,7 +2,7 @@
 \lyxformat 245
 \begin_document
 \begin_header
-\textclass article
+\textclass book
 \begin_preamble
 \usepackage{position,fancyhdr}
 \setlength\parindent{0.5cm}
